@@ -1,0 +1,7 @@
+{
+	"recommendations": [
+		"EditorConfig.EditorConfig",
+		"ms-vscode.Go",
+		"eamodio.gitlens"
+	]
+}

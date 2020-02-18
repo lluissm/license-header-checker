@@ -1,0 +1,5 @@
+{
+    "go.buildOnSave": "workspace",
+    "go.lintOnSave": "workspace",
+    "gitlens.codeLens.enabled": false
+}
