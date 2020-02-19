@@ -25,6 +25,9 @@ package config
 
 import (
 	"flag"
+	"log"
+	"os"
+	"strings"
 )
 
 // Options that the program accepts via commandline arguments/flags
@@ -35,37 +38,38 @@ type Options struct {
 	Path        string
 	LicensePath string
 	Extensions  []string
+	IgnorePaths []string
 }
 
 // ParseOptions returns the options
 func ParseOptions() Options {
 
-	writeFlagPtr := flag.Bool("i", false, "Insert the target license in case the file does not have any.")
-	overwriteFlagPtr := flag.Bool("r", false, "Replace the existing license by the target one in case it is different (i.e. useful to change year)")
-	verboseFlagPtr := flag.Bool("v", false, "Print extra information during execution like options, files being processed, execution time, ...")
+	writeFlagPtr := flag.Bool("add", false, "Add the target license in case the file does not have any.")
+	overwriteFlagPtr := flag.Bool("replace", false, "Replace the existing license by the target one in case they are different.")
+	verboseFlagPtr := flag.Bool("v", false, "Be verbose during execution, printing options, files being processed, execution time, ...")
+	extensionsFlagPtr := flag.String("extensions", "", "A comma separated list of the file extensions that should be analyzed.")
+	ignorePathsFlagPtr := flag.String("ignore", "", "A comma separated list of the sub-folders that should be ignored.")
+	licenseFlagPtr := flag.String("license", "", "Path to a file containing ONLY the license header file.")
+
+	// TODO: Add --version
 
 	flag.Parse()
-
 	args := flag.Args()
-	if len(args) < 3 {
-		panic("Missing argument")
-	}
 
-	licensePath := args[0]
-	path := args[1]
-
-	extensions := []string{}
-	for _, e := range args[2:] {
-		extensions = append(extensions, "."+e)
+	if len(args) < 1 {
+		log.Fatal("Missing argument: path.")
+		os.Exit(0)
 	}
 
 	opt := &Options{
 		*writeFlagPtr,
 		*overwriteFlagPtr,
 		*verboseFlagPtr,
-		path,
-		licensePath,
-		extensions,
+		args[0],
+		*licenseFlagPtr,
+		strings.Split(*extensionsFlagPtr, ","),
+		strings.Split(*ignorePathsFlagPtr, ","),
 	}
+
 	return *opt
 }
