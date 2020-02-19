@@ -53,7 +53,7 @@ func ParseOptions() Options {
 	args := flag.Args()
 
 	if len(args) < 3 {
-		log.Fatal("Missing argument: path.")
+		log.Fatal("Missing arguments, please see documentation.")
 		os.Exit(0)
 	}
 
