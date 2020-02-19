@@ -29,12 +29,12 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestFileExtensionIn(t *testing.T) {
+func TestFileHasExtension(t *testing.T) {
 	extensions := []string{".js", ".md"}
-	assert.True(t, ExtensionIn("file.js", extensions), "Should return true for .js")
-	assert.True(t, ExtensionIn("readme.md", extensions), "Should return true for .md")
-	assert.False(t, ExtensionIn("index.html", extensions), "Should return false for .html")
-	assert.False(t, ExtensionIn("styles.css", extensions), "Should return false for .css")
+	assert.True(t, HasExtension("file.js", extensions), "Should return true for .js")
+	assert.True(t, HasExtension("readme.md", extensions), "Should return true for .md")
+	assert.False(t, HasExtension("index.html", extensions), "Should return false for .html")
+	assert.False(t, HasExtension("styles.css", extensions), "Should return false for .css")
 }
 
 func TestFileShouldIgnore(t *testing.T) {

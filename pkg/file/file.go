@@ -28,8 +28,8 @@ import (
 	"strings"
 )
 
-// ExtensionIn returns true if the file's extension is one of the provided ones
-func ExtensionIn(path string, extensions []string) bool {
+// HasExtension returns true if the file's extension is one of the provided ones
+func HasExtension(path string, extensions []string) bool {
 	for _, ext := range extensions {
 		if filepath.Ext(path) == ext {
 			return true

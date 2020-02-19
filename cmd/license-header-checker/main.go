@@ -73,7 +73,7 @@ func processFiles(options config.Options) {
 			return nil
 		}
 
-		if file.ExtensionIn(path, options.Extensions) {
+		if file.HasExtension(path, options.Extensions) {
 			wg.Add(1)
 			go func() {
 				defer wg.Done()
