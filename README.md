@@ -22,23 +22,24 @@ If you cannot use make or you want more specific commands, take a look at the pr
 Synopsis:
 
 ```bash
-$ license-header-checker [-v] [-a] [-r] [-i folder1,folder2,...] <license-path> <project-path> <extensions...>
+$ license-header-checker [-arv] [-i folder1,folder2,...] license-path project-path extensions...
 ```
 
 The following options are available:
 
 ```
-  -a
-    	Add the target license in case the file does not have any.
+-a
+	Add the target license in case the file does not have any.
 
-  -r
-    	Replace the existing license by the target one in case they are different.
+-r
+	Replace the existing license by the target one in case they are different.
 
-  -i
-    	A comma separated list of the sub-folders that should be ignored.
+-i
+	A comma separated list of the sub-folders that should be ignored.
 
-  -v	
-  		Be verbose during execution, printing options, files being processed, execution time, ...
+-v	
+	Be verbose during execution printing options, files being processed, 
+	execution time, ...
 ````
 
 Real-life example assuming that:
