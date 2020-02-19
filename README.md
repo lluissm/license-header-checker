@@ -43,12 +43,12 @@ The following options are available:
 ````
 
 Real-life example assuming that:
-* You have installed the tool in your path (otherwise should start with ./path/to/executable).
-* You will execute the command directly from the project folder (path to project => ".").
-* You have placed the license_header.txt file in the same folder.
-* You want all options (verbose, add, replace, ignore).
-* You want to ignore node_modules and docs folders.
-* You are only interested in .js and .ts files.
+* You have **installed the tool in the path** (otherwise should start with ./path/to/executable).
+* You will **execute** the command directly **from the project folder** (path to project => ".").
+* You have placed the **license_header.txt** file in the **same folder**.
+* You want **all options** (verbose, add, replace, ignore).
+* You want to **ignore node_modules and docs** folders.
+* You want to process **only .js and .ts** files.
 
 
 ```bash
