@@ -25,12 +25,23 @@ package file
 
 import (
 	"path/filepath"
+	"strings"
 )
 
 // ExtensionIn returns true if the file's extension is one of the provided ones
 func ExtensionIn(path string, extensions []string) bool {
 	for _, ext := range extensions {
 		if filepath.Ext(path) == ext {
+			return true
+		}
+	}
+	return false
+}
+
+// ShouldIgnore returns true if the path matches any of the ignore strings
+func ShouldIgnore(path string, ignore []string) bool {
+	for _, ig := range ignore {
+		if strings.Contains(path, ig) {
 			return true
 		}
 	}

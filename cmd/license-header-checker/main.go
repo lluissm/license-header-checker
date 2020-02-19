@@ -69,6 +69,10 @@ func processFiles(options config.Options) {
 			return nil
 		}
 
+		if file.ShouldIgnore(path, options.IgnorePaths) {
+			return nil
+		}
+
 		if file.ExtensionIn(path, options.Extensions) {
 			wg.Add(1)
 			go func() {

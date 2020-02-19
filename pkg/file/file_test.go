@@ -36,3 +36,11 @@ func TestFileExtensionIn(t *testing.T) {
 	assert.False(t, ExtensionIn("index.html", extensions), "Should return false for .html")
 	assert.False(t, ExtensionIn("styles.css", extensions), "Should return false for .css")
 }
+
+func TestFileShouldIgnore(t *testing.T) {
+	ignore := []string{"node_modules", "docs"}
+	assert.True(t, ShouldIgnore("node_modules", ignore), "Should return true for node_modules")
+	assert.True(t, ShouldIgnore("docs", ignore), "Should return true for docs")
+	assert.False(t, ShouldIgnore("package", ignore), "Should return false for package")
+	assert.False(t, ShouldIgnore("src", ignore), "Should return false for src")
+}
