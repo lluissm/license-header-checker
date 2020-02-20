@@ -8,61 +8,50 @@ Command line utility written in [Go](https://golang.org) to **check** whether th
 
 It can also **insert** the license in case it does not exist as well as **replace** wrong/old ones.
 
-## Getting started
+## Compiling from source
 
-### Compiling
+Requires [go 1.13](https://golang.org/doc/devel/release.html#go1.13) and make. To build & test the project just type:
 
-Provided that you have make installed, you can build & test the project by just typing:
 ```bash
 $ make
 ```
-If you do not want to use make, or you want more specific commands, take a look at the provided [Makefile](https://github.com/lsm-dev/license-header-checker/blob/master/Makefile).
+If you cannot use make or you want more specific commands, take a look at the provided [Makefile](https://github.com/lsm-dev/license-header-checker/blob/master/Makefile).
 
-### Installing
+## Usage
 
-If this tool is going to be used frequently, it is often a good idea to install it in your path to be able to use it like any other command instead of using the executable's full path.
-
-If you are new to Go, check that the [environment variables](https://golang.org/cmd/go/#hdr-Environment_variables) GOPATH and/or GOBIN are setup and added to your path).
-
-To install the tool, just type:
+Synopsis:
 
 ```bash
-$ make install
+$ license-header-checker [-arv] [-i folder1,folder2,...] license-path project-path extensions...
 ```
 
-## How to use
-
-### Usage
-
-```bash
-$ license-header-checker [option flags] /path/to/license_header /path/to/src [extensions...]
-```
-
-The option flags are:
+The following options are available:
 
 ```
--i 
-	Insert the target license in case the file does not have any.
+-a
+	Add the target license in case the file does not have any.
 
 -r
-	Replace the existing license by the target one in case it is 
-	different (i.e. useful to change year)
+	Replace the existing license by the target one in case they are different.
 
--v
-	Print extra information during execution like options, files 
-	being processed, execution time, ...
+-i
+	A comma separated list of the sub-folders that should be ignored.
+
+-v	
+	Be verbose during execution printing options, files being processed, 
+	execution time, ...
 ````
 
-### Example
+Real-life example assuming that:
+* You have **installed the tool in the path** (otherwise should start with ./path/to/executable).
+* You will **execute** the command directly **from the project folder** (path to project => ".").
+* You have placed the **license_header.txt** file in the **same folder**.
+* You want **all options** (verbose, add, replace, ignore).
+* You want to **ignore node_modules and docs** folders.
+* You want to process **only .js and .ts** files.
 
-This example assumes that:
-* You have installed the tool (no need to use ./path/to/executable).
-* You will execute the command directly from the folder you want to analyze.
-* You have placed the "my_license_header.txt" file in the same folder.
-* You are only interested in .js and .ts files.
-* You want all options (verbose, insert, replace).
 
 ```bash
 $ cd path/to/src/folder
-$ license-header-checker -v -i -r ./my_license_header.txt . js ts
+$ license-header-checker -v -a -r -i node_modules,docs license_header.txt . js ts
 ```

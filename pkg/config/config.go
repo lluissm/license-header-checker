@@ -25,30 +25,34 @@ package config
 
 import (
 	"flag"
+	"log"
+	"strings"
 )
 
 // Options that the program accepts via commandline arguments/flags
 type Options struct {
-	Insert      bool
+	Add         bool
 	Replace     bool
 	Verbose     bool
 	Path        string
 	LicensePath string
 	Extensions  []string
+	IgnorePaths []string
 }
 
-// ParseOptions returns the options
+// ParseOptions returns the parsed options from cli
 func ParseOptions() Options {
 
-	writeFlagPtr := flag.Bool("i", false, "Insert the target license in case the file does not have any.")
-	overwriteFlagPtr := flag.Bool("r", false, "Replace the existing license by the target one in case it is different (i.e. useful to change year)")
-	verboseFlagPtr := flag.Bool("v", false, "Print extra information during execution like options, files being processed, execution time, ...")
+	writeFlagPtr := flag.Bool("a", false, "Add the target license in case the file does not have any.")
+	overwriteFlagPtr := flag.Bool("r", false, "Replace the existing license by the target one in case they are different.")
+	ignorePathsFlagPtr := flag.String("i", "", "A comma separated list of the sub-folders that should be ignored.")
+	verboseFlagPtr := flag.Bool("v", false, "Be verbose during execution printing options, files being processed, execution time, ...")
 
 	flag.Parse()
-
 	args := flag.Args()
+
 	if len(args) < 3 {
-		panic("Missing argument")
+		log.Fatal("Missing arguments, please see documentation.")
 	}
 
 	licensePath := args[0]
@@ -66,6 +70,8 @@ func ParseOptions() Options {
 		path,
 		licensePath,
 		extensions,
+		strings.Split(*ignorePathsFlagPtr, ","),
 	}
+
 	return *opt
 }

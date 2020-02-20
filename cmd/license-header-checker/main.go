@@ -46,7 +46,7 @@ func main() {
 func getLicense(path string) string {
 	data, err := ioutil.ReadFile(path)
 	if err != nil {
-		panic(err)
+		log.Fatal(err)
 	}
 	return string(data)
 }
@@ -69,7 +69,11 @@ func processFiles(options config.Options) {
 			return nil
 		}
 
-		if file.ExtensionIn(path, options.Extensions) {
+		if file.ShouldIgnore(path, options.IgnorePaths) {
+			return nil
+		}
+
+		if file.HasExtension(path, options.Extensions) {
 			wg.Add(1)
 			go func() {
 				defer wg.Done()
@@ -116,7 +120,7 @@ func processFile(path string, license string, options config.Options) bool {
 	if options.Verbose {
 		fmt.Printf("%s: NO license\n", path)
 	}
-	if options.Insert {
+	if options.Add {
 		insertLicense(path, content, license)
 	}
 
@@ -159,10 +163,10 @@ func replaceFile(path string, content string) {
 func printIntro(options config.Options, license string) {
 	if options.Verbose {
 		fmt.Printf("Project path: %s\n", options.Path)
+		fmt.Printf("Ignore folders: %v\n", options.IgnorePaths)
 		fmt.Printf("Extensions: %v\n", options.Extensions)
+		fmt.Printf("Add license: %v\n", options.Add)
 		fmt.Printf("Replace license: %v\n", options.Replace)
-		fmt.Printf("Insert license: %v\n", options.Insert)
-		fmt.Printf("Verbose: %v\n", options.Verbose)
 		fmt.Printf("Importing target license from: %s\n\n", options.LicensePath)
 		fmt.Printf("%s\n\n", license)
 		fmt.Printf("Scanning files...\n\n")

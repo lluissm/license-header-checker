@@ -29,10 +29,22 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestFileExtensionIn(t *testing.T) {
+func TestFileHasExtension(t *testing.T) {
 	extensions := []string{".js", ".md"}
-	assert.True(t, ExtensionIn("file.js", extensions), "Should return true for .js")
-	assert.True(t, ExtensionIn("readme.md", extensions), "Should return true for .md")
-	assert.False(t, ExtensionIn("index.html", extensions), "Should return false for .html")
-	assert.False(t, ExtensionIn("styles.css", extensions), "Should return false for .css")
+	assert.True(t, HasExtension("file.js", extensions))
+	assert.True(t, HasExtension("readme.md", extensions))
+	assert.False(t, HasExtension("index.html", extensions))
+	assert.False(t, HasExtension("styles.css", extensions))
+}
+
+func TestFileShouldIgnore(t *testing.T) {
+	ignore := []string{"node_modules", "test", "docs", "dont_like_this_file.py"}
+	assert.True(t, ShouldIgnore("node_modules/index.js", ignore))
+	assert.True(t, ShouldIgnore("test/my-test.cpp", ignore))
+	assert.True(t, ShouldIgnore("dont_like_this_file.py", ignore))
+	assert.True(t, ShouldIgnore("myapp/docs/index.html", ignore))
+	assert.False(t, ShouldIgnore("src/testQ/my-file.cpp", ignore))
+	assert.False(t, ShouldIgnore("src/TestData.java", ignore))
+	assert.False(t, ShouldIgnore("src/test.py", ignore))
+	assert.False(t, ShouldIgnore("README.md", ignore))
 }
