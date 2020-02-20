@@ -22,7 +22,7 @@ If you cannot use make or you want more specific commands, take a look at the pr
 Synopsis:
 
 ```bash
-$ license-header-checker [-arv] [-i folder1,folder2,...] license-path project-path extensions...
+$ license-header-checker [-a] [-r] [-v] [-i folder1,folder2,...] license-path project-path extensions...
 ```
 
 The following options are available:
