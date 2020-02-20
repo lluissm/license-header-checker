@@ -38,10 +38,12 @@ func TestFileHasExtension(t *testing.T) {
 }
 
 func TestFileShouldIgnore(t *testing.T) {
-	ignore := []string{"node_modules", "test", "docs"}
+	ignore := []string{"node_modules", "test", "docs", "dont_like_this_file.py"}
 	assert.True(t, ShouldIgnore("node_modules/index.js", ignore))
 	assert.True(t, ShouldIgnore("test/my-test.cpp", ignore))
+	assert.True(t, ShouldIgnore("dont_like_this_file.py", ignore))
 	assert.True(t, ShouldIgnore("myapp/docs/index.html", ignore))
+	assert.False(t, ShouldIgnore("src/testQ/my-file.cpp", ignore))
 	assert.False(t, ShouldIgnore("src/TestData.java", ignore))
 	assert.False(t, ShouldIgnore("src/test.py", ignore))
 	assert.False(t, ShouldIgnore("README.md", ignore))
