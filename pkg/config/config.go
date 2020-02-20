@@ -26,7 +26,6 @@ package config
 import (
 	"flag"
 	"log"
-	"os"
 	"strings"
 )
 
@@ -54,7 +53,6 @@ func ParseOptions() Options {
 
 	if len(args) < 3 {
 		log.Fatal("Missing arguments, please see documentation.")
-		os.Exit(0)
 	}
 
 	licensePath := args[0]

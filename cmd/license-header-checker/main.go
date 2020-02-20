@@ -48,7 +48,6 @@ func getLicense(path string) string {
 	data, err := ioutil.ReadFile(path)
 	if err != nil {
 		log.Fatal(err)
-		os.Exit(1)
 	}
 	return string(data)
 }

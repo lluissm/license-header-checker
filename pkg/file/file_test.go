@@ -31,16 +31,20 @@ import (
 
 func TestFileHasExtension(t *testing.T) {
 	extensions := []string{".js", ".md"}
-	assert.True(t, HasExtension("file.js", extensions), "Should return true for .js")
-	assert.True(t, HasExtension("readme.md", extensions), "Should return true for .md")
-	assert.False(t, HasExtension("index.html", extensions), "Should return false for .html")
-	assert.False(t, HasExtension("styles.css", extensions), "Should return false for .css")
+	assert.True(t, HasExtension("file.js", extensions))
+	assert.True(t, HasExtension("readme.md", extensions))
+	assert.False(t, HasExtension("index.html", extensions))
+	assert.False(t, HasExtension("styles.css", extensions))
 }
 
 func TestFileShouldIgnore(t *testing.T) {
-	ignore := []string{"node_modules", "docs"}
-	assert.True(t, ShouldIgnore("node_modules", ignore), "Should return true for node_modules")
-	assert.True(t, ShouldIgnore("docs", ignore), "Should return true for docs")
-	assert.False(t, ShouldIgnore("package", ignore), "Should return false for package")
-	assert.False(t, ShouldIgnore("src", ignore), "Should return false for src")
+	ignore := []string{"node_modules", "test", "docs", "dont_like_this_file.py"}
+	assert.True(t, ShouldIgnore("node_modules/index.js", ignore))
+	assert.True(t, ShouldIgnore("test/my-test.cpp", ignore))
+	assert.True(t, ShouldIgnore("dont_like_this_file.py", ignore))
+	assert.True(t, ShouldIgnore("myapp/docs/index.html", ignore))
+	assert.False(t, ShouldIgnore("src/testQ/my-file.cpp", ignore))
+	assert.False(t, ShouldIgnore("src/TestData.java", ignore))
+	assert.False(t, ShouldIgnore("src/test.py", ignore))
+	assert.False(t, ShouldIgnore("README.md", ignore))
 }

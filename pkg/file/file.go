@@ -24,14 +24,16 @@ SOFTWARE.
 package file
 
 import (
+	"os"
 	"path/filepath"
 	"strings"
 )
 
 // HasExtension returns true if the file's extension is one of the provided ones
 func HasExtension(path string, extensions []string) bool {
+	fileExtension := filepath.Ext(path)
 	for _, ext := range extensions {
-		if filepath.Ext(path) == ext {
+		if fileExtension == ext {
 			return true
 		}
 	}
@@ -39,10 +41,13 @@ func HasExtension(path string, extensions []string) bool {
 }
 
 // ShouldIgnore returns true if the path matches any of the ignore strings
-func ShouldIgnore(path string, ignore []string) bool {
-	for _, ig := range ignore {
-		if strings.Contains(path, ig) {
-			return true
+func ShouldIgnore(path string, ignoreFolders []string) bool {
+	segments := strings.Split(path, string(os.PathSeparator))
+	for _, segment := range segments {
+		for _, ignore := range ignoreFolders {
+			if segment == ignore {
+				return true
+			}
 		}
 	}
 	return false
