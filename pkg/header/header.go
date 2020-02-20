@@ -44,11 +44,6 @@ func ContainsLicense(content string) bool {
 	return containsCopyright || containsLicense
 }
 
-// Contains returns true if the content contains the provided header
-func Contains(content string, header string) bool {
-	return strings.Contains(content, header)
-}
-
 // Extract returns the first block comment of the content (if any). Empty string otherwise.
 func Extract(content string) (header string) {
 	for _, line := range strings.Split(content, "\n") {

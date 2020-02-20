@@ -30,6 +30,7 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"strings"
 	"sync"
 	"time"
 
@@ -137,7 +138,7 @@ func processFile(path string, license string, options config.Options) Operation 
 
 	content := string(data)
 
-	if header.Contains(content, license) {
+	if strings.Contains(content, license) {
 		if options.Verbose {
 			fmt.Printf(" · %s => %s", path, green("License ok\n"))
 		}

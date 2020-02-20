@@ -35,13 +35,6 @@ func TestContainsLicense(t *testing.T) {
 	assert.False(t, ContainsLicense(fakeFileWithoutLicense()))
 }
 
-func TestContainsHeader(t *testing.T) {
-	license := fakeTargetLicenseHeader()
-	assert.True(t, Contains((fakeFileWithTargetLicenseHeader()), license))
-	assert.False(t, Contains((fakeFileWithDifferentLicenseHeader()), license))
-	assert.False(t, Contains((fakeFileWithoutLicense()), license))
-}
-
 func TestExtractHeader(t *testing.T) {
 	expected := fakeTargetLicenseHeader()
 	input := fakeFileWithTargetLicenseHeader()
