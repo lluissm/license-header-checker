@@ -33,6 +33,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/gookit/color"
 	"github.com/lsm-dev/license-header-checker/pkg/config"
 	"github.com/lsm-dev/license-header-checker/pkg/file"
 	"github.com/lsm-dev/license-header-checker/pkg/header"
@@ -53,11 +54,16 @@ func getLicense(path string) string {
 }
 
 func processFiles(options config.Options) {
-	files, processedFiles := 0, 0
+	files := 0
 	start := time.Now()
 	var wg sync.WaitGroup
 
 	license := getLicense(options.LicensePath)
+
+	licenseOk := 0
+	licenseReplaced := 0
+	licenseAdded := 0
+	processedFiles := 0
 
 	printIntro(options, license)
 
@@ -78,7 +84,16 @@ func processFiles(options config.Options) {
 			wg.Add(1)
 			go func() {
 				defer wg.Done()
-				processFile(path, license, options)
+				res := processFile(path, license, options)
+
+				switch res {
+				case -1:
+					licenseOk++
+				case 0:
+					licenseReplaced++
+				case 1:
+					licenseAdded++
+				}
 			}()
 			processedFiles++
 		}
@@ -92,11 +107,12 @@ func processFiles(options config.Options) {
 	}
 
 	wg.Wait()
+
 	elapsed := time.Since(start)
-	printResults(files, processedFiles, elapsed.Milliseconds(), options)
+	printResults(files, processedFiles, licenseOk, licenseAdded, licenseReplaced, elapsed.Milliseconds(), options)
 }
 
-func processFile(path string, license string, options config.Options) bool {
+func processFile(path string, license string, options config.Options) int {
 	data, err := ioutil.ReadFile(path)
 	if err != nil {
 		panic(err)
@@ -105,7 +121,7 @@ func processFile(path string, license string, options config.Options) bool {
 	content := string(data)
 
 	if header.Contains(content, license) {
-		return true
+		return -1
 	}
 
 	if header.ContainsLicense(content) {
@@ -115,7 +131,7 @@ func processFile(path string, license string, options config.Options) bool {
 		if options.Replace {
 			replaceLicense(path, content, license)
 		}
-		return false
+		return 0
 	}
 
 	if options.Verbose {
@@ -125,7 +141,7 @@ func processFile(path string, license string, options config.Options) bool {
 		insertLicense(path, content, license)
 	}
 
-	return false
+	return 1
 }
 
 func insertLicense(path string, content string, license string) {
@@ -170,17 +186,21 @@ func printIntro(options config.Options, license string) {
 		fmt.Printf("Replace license: %v\n", options.Replace)
 		fmt.Printf("Importing target license from: %s\n\n", options.LicensePath)
 		fmt.Printf("%s\n\n", license)
-		fmt.Printf("Scanning files...\n\n")
 	}
 }
 
-func printResults(files, processedFiles int, elapsedMs int64, options config.Options) {
+func printResults(files, processedFiles, licenseOk, licenseAdded, licenseReplaced int, elapsedMs int64, options config.Options) {
+	red := color.FgRed.Render
+	green := color.FgGreen.Render
+	yellow := color.FgYellow.Render
+
 	if options.Verbose {
-		fmt.Printf("\n...Finished processing files\n\n")
+		fmt.Printf("\nResults: %s ok, %s replaced, %s added, %d total files\n", green(fmt.Sprintf("%d", licenseOk)), yellow(fmt.Sprintf("%d", licenseReplaced)), red(fmt.Sprintf("%d", licenseAdded)), processedFiles)
+	} else {
+		fmt.Printf("Results: %s | %s | %s\n", green(fmt.Sprintf("%d", licenseOk)), yellow(fmt.Sprintf("%d", licenseReplaced)), red(fmt.Sprintf("%d", licenseAdded)))
 	}
-	fmt.Printf("Files found in tree: %d\n", files)
-	fmt.Printf("Files that match %v: %d\n", options.Extensions, processedFiles)
+
 	if options.Verbose {
-		fmt.Printf("Total processing time: %d ms\n\n", elapsedMs)
+		fmt.Printf("\nTotal processing time: %d ms\n\n", elapsedMs)
 	}
 }
