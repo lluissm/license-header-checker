@@ -96,7 +96,7 @@ func processFiles(options config.Options) {
 			wg.Add(1)
 			go func() {
 				defer wg.Done()
-				op := processFile(path, license, options)
+				op, _ := processFile(path, license, options)
 
 				switch op {
 				case Skipped:
@@ -126,14 +126,15 @@ func processFiles(options config.Options) {
 	printResults(files, processedFiles, skipped, licenseOk, licenseAdded, licenseReplaced, elapsed.Milliseconds(), options)
 }
 
-func processFile(path string, license string, options config.Options) Operation {
+func processFile(path string, license string, options config.Options) (Operation, error) {
 	green := color.FgGreen.Render
 	yellow := color.FgYellow.Render
 	red := color.FgRed.Render
 
 	data, err := ioutil.ReadFile(path)
 	if err != nil {
-		panic(err)
+		fmt.Printf("%s\n", red("%s", err))
+		return Skipped, err
 	}
 
 	content := string(data)
@@ -142,7 +143,7 @@ func processFile(path string, license string, options config.Options) Operation 
 		if options.Verbose {
 			fmt.Printf(" · %s => %s", path, green("License ok\n"))
 		}
-		return LicenseOk
+		return LicenseOk, nil
 	}
 
 	if header.ContainsLicense(content) {
@@ -151,9 +152,9 @@ func processFile(path string, license string, options config.Options) Operation 
 		}
 		if options.Replace {
 			replaceLicense(path, content, license)
-			return LicenseReplaced
+			return LicenseReplaced, nil
 		}
-		return Skipped
+		return Skipped, nil
 	}
 
 	if options.Verbose {
@@ -161,10 +162,10 @@ func processFile(path string, license string, options config.Options) Operation 
 	}
 	if options.Add {
 		addLicense(path, content, license)
-		return LicenseAdded
+		return LicenseAdded, nil
 	}
 
-	return Skipped
+	return Skipped, nil
 }
 
 func addLicense(path string, content string, license string) {
