@@ -24,31 +24,29 @@ SOFTWARE.
 package file
 
 import (
-	"os"
-	"path/filepath"
-	"strings"
+	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
-// HasExtension returns true if the file's extension is one of the provided ones
-func HasExtension(path string, extensions []string) bool {
-	fileExtension := filepath.Ext(path)
-	for _, ext := range extensions {
-		if fileExtension == ext {
-			return true
-		}
-	}
-	return false
+func TestFileHasExtension(t *testing.T) {
+	extensions := []string{".js", ".md"}
+	assert.True(t, HasExtension("file.js", extensions))
+	assert.True(t, HasExtension("readme.md", extensions))
+	assert.False(t, HasExtension("index.html", extensions))
+	assert.False(t, HasExtension("styles.css", extensions))
 }
 
-// ShouldIgnore returns true if the path matches any of the ignore strings
-func ShouldIgnore(path string, ignoreFolders []string) bool {
-	segments := strings.Split(path, string(os.PathSeparator))
-	for _, segment := range segments {
-		for _, ignore := range ignoreFolders {
-			if segment == ignore {
-				return true
-			}
-		}
-	}
-	return false
+func TestFileShouldIgnore(t *testing.T) {
+	ignore := []string{"node_modules", "test", "docs", "dont_like_this_file.py"}
+	assert.True(t, ShouldIgnore("node_modules/index.js", ignore))
+	assert.True(t, ShouldIgnore("test/my-test.cpp", ignore))
+	assert.True(t, ShouldIgnore("dont_like_this_file.py", ignore))
+	assert.True(t, ShouldIgnore("myapp/docs/index.html", ignore))
+	assert.False(t, ShouldIgnore("node_modules/index.js", []string{}))
+	assert.False(t, ShouldIgnore("node_modules/index.js", nil))
+	assert.False(t, ShouldIgnore("src/testQ/my-file.cpp", ignore))
+	assert.False(t, ShouldIgnore("src/TestData.java", ignore))
+	assert.False(t, ShouldIgnore("src/test.py", ignore))
+	assert.False(t, ShouldIgnore("README.md", ignore))
 }

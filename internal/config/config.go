@@ -25,9 +25,13 @@ package config
 
 import (
 	"flag"
+	"fmt"
 	"log"
+	"os"
 	"strings"
 )
+
+const version string = "0.1.0"
 
 // Options that the program accepts via commandline arguments/flags
 type Options struct {
@@ -41,14 +45,20 @@ type Options struct {
 }
 
 // ParseOptions returns the parsed options from cli
-func ParseOptions() Options {
+func ParseOptions() *Options {
 
 	writeFlagPtr := flag.Bool("a", false, "Add the target license in case the file does not have any.")
 	overwriteFlagPtr := flag.Bool("r", false, "Replace the existing license by the target one in case they are different.")
-	ignorePathsFlagPtr := flag.String("i", "", "A comma separated list of the sub-folders that should be ignored.")
+	ignorePathsFlagPtr := flag.String("i", "", "A comma separated list of the folders/files that should be ignored.")
 	verboseFlagPtr := flag.Bool("v", false, "Be verbose during execution printing options, files being processed, execution time, ...")
+	versionFlagPtr := flag.Bool("version", false, "Display version number")
 
 	flag.Parse()
+	if *versionFlagPtr {
+		fmt.Printf("version: v%s\n", version)
+		os.Exit(0)
+	}
+
 	args := flag.Args()
 
 	if len(args) < 3 {
@@ -62,7 +72,7 @@ func ParseOptions() Options {
 		extensions = append(extensions, "."+e)
 	}
 
-	opt := &Options{
+	return &Options{
 		*writeFlagPtr,
 		*overwriteFlagPtr,
 		*verboseFlagPtr,
@@ -71,6 +81,4 @@ func ParseOptions() Options {
 		extensions,
 		strings.Split(*ignorePathsFlagPtr, ","),
 	}
-
-	return *opt
 }

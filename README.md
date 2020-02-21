@@ -16,8 +16,6 @@ Requires [go 1.13](https://golang.org/doc/devel/release.html#go1.13) and make. T
 $ make
 ```
 
-
-
 To generate the **binaries for Windows, mac OS and linux**:
 
 ```bash
@@ -29,28 +27,21 @@ $ make cross-build
 Synopsis:
 
 ```bash
-$ license-header-checker [-a] [-r] [-v] [-i folder1,folder2,...] license-path project-path extensions...
+$ license-header-checker [-a] [-r] [-v] [-i dir1,...] license-path project-path extensions...
 ```
 
-The following options are available:
+Options:
 
 ```
--a
-	Add the target license in case the file does not have any.
-
--r
-	Replace the existing license by the target one in case they are different.
-
--i
-	A comma separated list of the sub-folders that should be ignored.
-
--v	
-	Be verbose during execution printing options, files being processed, 
-	execution time, ...
-````
+  -a        Add the target license in case the file does not have any.
+  -r        Replace the existing license by the target one in case they are different.
+  -v        Be verbose during execution.
+  -i        A comma separated list of the folders/files that should be ignored.
+  -version  Display version number.
+```
 
 Example:
 
 ```bash
-$ license-header-checker -v -a -r -i node_modules,docs ~/Dev/license_header.txt ~/Dev/projects/my-app js ts
+$ license-header-checker -v -a -r -i docs ../license_header.txt . js ts
 ```
