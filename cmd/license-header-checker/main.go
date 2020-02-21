@@ -32,6 +32,7 @@ import (
 	"path/filepath"
 	"strings"
 	"sync"
+	"sync/atomic"
 	"time"
 
 	"github.com/gookit/color"
@@ -68,14 +69,12 @@ const (
 )
 
 func processFiles(options config.Options) {
-	files := 0
 	start := time.Now()
 	var wg sync.WaitGroup
 
 	license := getLicense(options.LicensePath)
 
-	licenseOk, licenseAdded, licenseReplaced, skipped := 0, 0, 0, 0
-	processedFiles := 0
+	var files, processedFiles, licenseOk, licenseAdded, licenseReplaced, skipped int64 = 0, 0, 0, 0, 0, 0
 
 	printIntro(options)
 
@@ -100,13 +99,13 @@ func processFiles(options config.Options) {
 
 				switch op {
 				case Skipped:
-					skipped++
+					atomic.AddInt64(&skipped, 1)
 				case LicenseOk:
-					licenseOk++
+					atomic.AddInt64(&licenseOk, 1)
 				case LicenseReplaced:
-					licenseReplaced++
+					atomic.AddInt64(&licenseReplaced, 1)
 				case LicenseAdded:
-					licenseAdded++
+					atomic.AddInt64(&licenseAdded, 1)
 				}
 			}()
 			processedFiles++
@@ -220,7 +219,7 @@ func printIntro(options config.Options) {
 	}
 }
 
-func printResults(files, processedFiles, skipped, licensesOk, licensesAdded, licensesReplaced int, elapsedMs int64, options config.Options) {
+func printResults(files, processedFiles, skipped, licensesOk, licensesAdded, licensesReplaced, elapsedMs int64, options config.Options) {
 	licensesOkStr := color.FgGreen.Render(fmt.Sprintf("%d", licensesOk))
 	licensesReplacedStr := color.FgYellow.Render(fmt.Sprintf("%d", licensesReplaced))
 	licensesAddedStr := color.FgRed.Render(fmt.Sprintf("%d", licensesAdded))
