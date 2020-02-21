@@ -31,7 +31,7 @@ import (
 	"strings"
 )
 
-const version string = "0.1.0"
+const version string = "1.0.0"
 
 // Options that the program accepts via commandline arguments/flags
 type Options struct {
