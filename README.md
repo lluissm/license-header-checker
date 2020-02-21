@@ -10,12 +10,19 @@ It can also **insert** the license in case it does not exist as well as **replac
 
 ## Compiling from source
 
-Requires [go 1.13](https://golang.org/doc/devel/release.html#go1.13) and make. To build & test the project just type:
+Requires [go 1.13](https://golang.org/doc/devel/release.html#go1.13) and make. To **build & test** the project:
 
 ```bash
 $ make
 ```
-If you cannot use make or you want more specific commands, take a look at the provided [Makefile](https://github.com/lsm-dev/license-header-checker/blob/master/Makefile).
+
+
+
+To generate the **binaries for Windows, mac OS and linux**:
+
+```bash
+$ make cross-build
+```
 
 ## Usage
 
@@ -42,16 +49,8 @@ The following options are available:
 	execution time, ...
 ````
 
-Real-life example assuming that:
-* You have **installed the tool in the path** (otherwise should start with ./path/to/executable).
-* You will **execute** the command directly **from the project folder** (path to project => ".").
-* You have placed the **license_header.txt** file in the **same folder**.
-* You want **all options** (verbose, add, replace, ignore).
-* You want to **ignore node_modules and docs** folders.
-* You want to process **only .js and .ts** files.
-
+Example:
 
 ```bash
-$ cd path/to/src/folder
-$ license-header-checker -v -a -r -i node_modules,docs license_header.txt . js ts
+$ license-header-checker -v -a -r -i node_modules,docs ~/Dev/license_header.txt ~/Dev/projects/my-app js ts
 ```
