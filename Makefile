@@ -29,6 +29,6 @@ cross-build: clean
 		for ARCH in 386 amd64; do										\
 			echo "=> Building $$OS-$$ARCH";								\
 			env GOOS=$$OS GOARCH=$$ARCH									\
-			go build -o bin/targets/$$OS/$$ARCH/$(CMD) ./cmd/$(CMD);\
+			go build -o bin/targets/$$OS/$$ARCH/$(CMD) ./cmd/$(CMD);    \
 		done															\
 	done
