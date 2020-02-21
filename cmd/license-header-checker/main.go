@@ -30,9 +30,12 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"strings"
 	"sync"
+	"sync/atomic"
 	"time"
 
+	"github.com/gookit/color"
 	"github.com/lsm-dev/license-header-checker/pkg/config"
 	"github.com/lsm-dev/license-header-checker/pkg/file"
 	"github.com/lsm-dev/license-header-checker/pkg/header"
@@ -51,14 +54,35 @@ func getLicense(path string) string {
 	return string(data)
 }
 
+// Operation is the result of processFile
+type Operation int
+
+const (
+	// Skipped means that the file was not modified but it did not have the target license
+	Skipped Operation = iota
+	// LicenseOk means that the license was OK
+	LicenseOk
+	// LicenseAdded means that the target license was added to the file
+	LicenseAdded
+	// LicenseReplaced means that the license was replaced with the target one
+	LicenseReplaced
+)
+
+var (
+	okRender      = color.FgGreen.Render
+	warningRender = color.FgYellow.Render
+	errorRender   = color.FgRed.Render
+)
+
 func processFiles(options config.Options) {
-	files, processedFiles := 0, 0
 	start := time.Now()
 	var wg sync.WaitGroup
 
 	license := getLicense(options.LicensePath)
 
-	printIntro(options, license)
+	var files, processedFiles, licenseOk, licenseAdded, licenseReplaced, skipped int64 = 0, 0, 0, 0, 0, 0
+
+	printIntro(options)
 
 	err := filepath.Walk(options.Path, func(path string, info os.FileInfo, err error) error {
 		if err != nil {
@@ -77,7 +101,18 @@ func processFiles(options config.Options) {
 			wg.Add(1)
 			go func() {
 				defer wg.Done()
-				processFile(path, license, options)
+				op, _ := processFile(path, license, options)
+
+				switch op {
+				case Skipped:
+					atomic.AddInt64(&skipped, 1)
+				case LicenseOk:
+					atomic.AddInt64(&licenseOk, 1)
+				case LicenseReplaced:
+					atomic.AddInt64(&licenseReplaced, 1)
+				case LicenseAdded:
+					atomic.AddInt64(&licenseAdded, 1)
+				}
 			}()
 			processedFiles++
 		}
@@ -91,43 +126,51 @@ func processFiles(options config.Options) {
 	}
 
 	wg.Wait()
+
 	elapsed := time.Since(start)
-	printResults(files, processedFiles, elapsed.Milliseconds(), options)
+	printResults(files, processedFiles, skipped, licenseOk, licenseAdded, licenseReplaced, elapsed.Milliseconds(), options)
 }
 
-func processFile(path string, license string, options config.Options) bool {
+func processFile(path string, license string, options config.Options) (Operation, error) {
+
 	data, err := ioutil.ReadFile(path)
 	if err != nil {
-		panic(err)
+		fmt.Printf("%s\n", errorRender("%s", err))
+		return Skipped, err
 	}
 
 	content := string(data)
 
-	if header.Contains(content, license) {
-		return true
+	if strings.Contains(content, license) {
+		if options.Verbose {
+			fmt.Printf(" · %s => %s", path, okRender("License ok\n"))
+		}
+		return LicenseOk, nil
 	}
 
 	if header.ContainsLicense(content) {
 		if options.Verbose {
-			fmt.Printf("%s: wrong license\n", path)
+			fmt.Printf(" · %s => %s", path, warningRender("License is different\n"))
 		}
 		if options.Replace {
 			replaceLicense(path, content, license)
+			return LicenseReplaced, nil
 		}
-		return false
+		return Skipped, nil
 	}
 
 	if options.Verbose {
-		fmt.Printf("%s: NO license\n", path)
+		fmt.Printf(" · %s => %s", path, errorRender("License missing\n"))
 	}
 	if options.Add {
-		insertLicense(path, content, license)
+		addLicense(path, content, license)
+		return LicenseAdded, nil
 	}
 
-	return false
+	return Skipped, nil
 }
 
-func insertLicense(path string, content string, license string) {
+func addLicense(path string, content string, license string) {
 	res := header.Insert(content, license)
 	replaceFile(path, res)
 }
@@ -160,26 +203,43 @@ func replaceFile(path string, content string) {
 	}
 }
 
-func printIntro(options config.Options, license string) {
+func printIntro(options config.Options) {
 	if options.Verbose {
-		fmt.Printf("Project path: %s\n", options.Path)
-		fmt.Printf("Ignore folders: %v\n", options.IgnorePaths)
-		fmt.Printf("Extensions: %v\n", options.Extensions)
-		fmt.Printf("Add license: %v\n", options.Add)
-		fmt.Printf("Replace license: %v\n", options.Replace)
-		fmt.Printf("Importing target license from: %s\n\n", options.LicensePath)
-		fmt.Printf("%s\n\n", license)
-		fmt.Printf("Scanning files...\n\n")
+		blue := color.FgBlue.Render
+		fmt.Printf("Options: ")
+		fmt.Printf("\n · Project path: %s\n", blue(fmt.Sprintf("%s", options.Path)))
+		fmt.Printf(" · Ignore folders: %s\n", blue(fmt.Sprintf("%v", options.IgnorePaths)))
+		fmt.Printf(" · Extensions: %s\n", blue(fmt.Sprintf("%v", options.Extensions)))
+		fmt.Printf(" · Flags: ")
+		if options.Add {
+			fmt.Printf("%s ", blue("add"))
+		}
+		if options.Replace {
+			fmt.Printf("%s ", blue("replace"))
+		}
+		fmt.Printf("\n · License header: %s\n", blue(fmt.Sprintf("%s", options.LicensePath)))
+		fmt.Printf("\nFiles:\n")
 	}
 }
 
-func printResults(files, processedFiles int, elapsedMs int64, options config.Options) {
+func printResults(files, processedFiles, skipped, licensesOk, licensesAdded, licensesReplaced, elapsedMs int64, options config.Options) {
+	licensesOkStr := okRender(fmt.Sprintf("%d", licensesOk))
+	licensesReplacedStr := warningRender(fmt.Sprintf("%d", licensesReplaced))
+	licensesAddedStr := errorRender(fmt.Sprintf("%d", licensesAdded))
+
 	if options.Verbose {
-		fmt.Printf("\n...Finished processing files\n\n")
+		fmt.Printf("\nResults:\n")
+		fmt.Printf(" · Total files: %d\n", processedFiles)
+		fmt.Printf(" · OK licenses: %s\n", licensesOkStr)
+		fmt.Printf(" · Added licenses: %s\n", licensesAddedStr)
+		fmt.Printf(" · Replaced licenses: %s\n", licensesReplacedStr)
+		fmt.Printf(" · Processing time: %d ms\n", elapsedMs)
+	} else {
+		fmt.Printf("%d files => %s licenses ok, %s licenses replaced, %s licenses added", processedFiles, licensesOkStr, licensesReplacedStr, licensesAddedStr)
 	}
-	fmt.Printf("Files found in tree: %d\n", files)
-	fmt.Printf("Files that match %v: %d\n", options.Extensions, processedFiles)
-	if options.Verbose {
-		fmt.Printf("Total processing time: %d ms\n\n", elapsedMs)
+
+	if skipped > 0 {
+		fmt.Println("")
+		color.Error.Printf("\n [!] %d operations were skipped. You may have forgotten to add one of the following flags -a (add), -r (replace) ", skipped)
 	}
 }

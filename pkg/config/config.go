@@ -57,7 +57,6 @@ func ParseOptions() Options {
 
 	licensePath := args[0]
 	path := args[1]
-
 	extensions := []string{}
 	for _, e := range args[2:] {
 		extensions = append(extensions, "."+e)
