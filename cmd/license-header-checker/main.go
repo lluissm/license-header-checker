@@ -68,6 +68,12 @@ const (
 	LicenseReplaced
 )
 
+var (
+	okRender      = color.FgGreen.Render
+	warningRender = color.FgYellow.Render
+	errorRender   = color.FgRed.Render
+)
+
 func processFiles(options config.Options) {
 	start := time.Now()
 	var wg sync.WaitGroup
@@ -126,13 +132,10 @@ func processFiles(options config.Options) {
 }
 
 func processFile(path string, license string, options config.Options) (Operation, error) {
-	green := color.FgGreen.Render
-	yellow := color.FgYellow.Render
-	red := color.FgRed.Render
 
 	data, err := ioutil.ReadFile(path)
 	if err != nil {
-		fmt.Printf("%s\n", red("%s", err))
+		fmt.Printf("%s\n", errorRender("%s", err))
 		return Skipped, err
 	}
 
@@ -140,14 +143,14 @@ func processFile(path string, license string, options config.Options) (Operation
 
 	if strings.Contains(content, license) {
 		if options.Verbose {
-			fmt.Printf(" · %s => %s", path, green("License ok\n"))
+			fmt.Printf(" · %s => %s", path, okRender("License ok\n"))
 		}
 		return LicenseOk, nil
 	}
 
 	if header.ContainsLicense(content) {
 		if options.Verbose {
-			fmt.Printf(" · %s => %s", path, yellow("License is different\n"))
+			fmt.Printf(" · %s => %s", path, warningRender("License is different\n"))
 		}
 		if options.Replace {
 			replaceLicense(path, content, license)
@@ -157,7 +160,7 @@ func processFile(path string, license string, options config.Options) (Operation
 	}
 
 	if options.Verbose {
-		fmt.Printf(" · %s => %s", path, red("License missing\n"))
+		fmt.Printf(" · %s => %s", path, errorRender("License missing\n"))
 	}
 	if options.Add {
 		addLicense(path, content, license)
@@ -220,9 +223,9 @@ func printIntro(options config.Options) {
 }
 
 func printResults(files, processedFiles, skipped, licensesOk, licensesAdded, licensesReplaced, elapsedMs int64, options config.Options) {
-	licensesOkStr := color.FgGreen.Render(fmt.Sprintf("%d", licensesOk))
-	licensesReplacedStr := color.FgYellow.Render(fmt.Sprintf("%d", licensesReplaced))
-	licensesAddedStr := color.FgRed.Render(fmt.Sprintf("%d", licensesAdded))
+	licensesOkStr := okRender(fmt.Sprintf("%d", licensesOk))
+	licensesReplacedStr := warningRender(fmt.Sprintf("%d", licensesReplaced))
+	licensesAddedStr := errorRender(fmt.Sprintf("%d", licensesAdded))
 
 	if options.Verbose {
 		fmt.Printf("\nResults:\n")
