@@ -24,6 +24,7 @@ SOFTWARE.
 package config
 
 import (
+	"errors"
 	"flag"
 	"fmt"
 	"log"
@@ -31,7 +32,16 @@ import (
 	"strings"
 )
 
-const version string = "1.0.0"
+const badVersion = "N/A"
+
+var version string = badVersion
+
+// AssertGoodBuild checks whether build version was supplied at link time
+func AssertGoodBuild() {
+	if version == badVersion {
+		panic(errors.New("Malformed build, please use supplied Makefile"))
+	}
+}
 
 // Options that the program accepts via commandline arguments/flags
 type Options struct {
@@ -55,7 +65,7 @@ func ParseOptions() *Options {
 
 	flag.Parse()
 	if *versionFlagPtr {
-		fmt.Printf("version: v%s\n", version)
+		fmt.Printf("version: %s\n", version)
 		os.Exit(0)
 	}
 
