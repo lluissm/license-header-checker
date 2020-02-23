@@ -25,7 +25,7 @@ test:
 	@go test ./...
 
 install:
-	@echo "=> Installing ${VERSION} in go/bin"
+	@echo "=> Installing ${CMD} ${VERSION} in go/bin"
 	@go install $(LD_FLAGS) $(BUILD_PATH)
 
 cross-build: clean
