@@ -53,28 +53,34 @@ type (
 
 	// Stats is the result of processing multiple files
 	Stats struct {
-		Skipped          int64
+		SkippedAdds      int64
+		SkippedReplaces  int64
 		LicensesOk       int64
 		LicensesAdded    int64
 		LicensesReplaced int64
+		Errors           int64
 		ElapsedMs        int64
 	}
 )
 
 // TotalOperations returns the sum of Skipped, LicensesOk, LicensesAdded and LicensesReplaced
 func (s *Stats) TotalOperations() int64 {
-	return s.Skipped + s.LicensesOk + s.LicensesAdded + s.LicensesReplaced
+	return s.SkippedAdds + s.SkippedReplaces + s.LicensesOk + s.LicensesAdded + s.LicensesReplaced
 }
 
 const (
-	// Skipped means that the file was not modified but it did not have the target license
-	Skipped Operation = iota
+	// SkippedAdd means that the file had no license but the new one was not added. Missing -a flasg
+	SkippedAdd Operation = iota
+	// SkippedReplace means that the file had a different license but it was not replaced with the target one. Missing -r flag
+	SkippedReplace
 	// LicenseOk means that the license was OK
 	LicenseOk
 	// LicenseAdded means that the target license was added to the file
 	LicenseAdded
 	// LicenseReplaced means that the license was replaced with the target one
 	LicenseReplaced
+	// OperationError means there was an error with one of the files
+	OperationError
 )
 
 var (
@@ -93,12 +99,13 @@ func Files(options *config.Options) (*Stats, error) {
 		return nil, err
 	}
 
-	var licenseOk, licenseAdded, licenseReplaced, skipped int64 = 0, 0, 0, 0
+	var licenseOk, licenseAdded, licenseReplaced, skippedAdds, skippedReplaces, errors int64 = 0, 0, 0, 0, 0, 0
 
 	err = filepath.Walk(options.Path, func(path string, info os.FileInfo, err error) error {
 
 		if err != nil {
 			fmt.Printf("%s\n", errorRender("%s", err))
+			atomic.AddInt64(&errors, 1)
 			return nil
 		}
 		if info.IsDir() {
@@ -121,14 +128,18 @@ func Files(options *config.Options) (*Stats, error) {
 			}
 
 			switch op {
-			case Skipped:
-				atomic.AddInt64(&skipped, 1)
+			case SkippedAdd:
+				atomic.AddInt64(&skippedAdds, 1)
+			case SkippedReplace:
+				atomic.AddInt64(&skippedReplaces, 1)
 			case LicenseOk:
 				atomic.AddInt64(&licenseOk, 1)
 			case LicenseReplaced:
 				atomic.AddInt64(&licenseReplaced, 1)
 			case LicenseAdded:
 				atomic.AddInt64(&licenseAdded, 1)
+			case OperationError:
+				atomic.AddInt64(&errors, 1)
 			}
 		}()
 
@@ -139,11 +150,13 @@ func Files(options *config.Options) (*Stats, error) {
 
 	elapsed := time.Since(start)
 	return &Stats{
-		Skipped:          skipped,
+		SkippedAdds:      skippedAdds,
+		SkippedReplaces:  skippedReplaces,
 		LicensesOk:       licenseOk,
 		LicensesAdded:    licenseAdded,
 		LicensesReplaced: licenseReplaced,
 		ElapsedMs:        elapsed.Milliseconds(),
+		Errors:           errors,
 	}, err
 }
 
@@ -152,7 +165,7 @@ func File(path string, license string, options *config.Options) (Operation, erro
 
 	data, err := ioutil.ReadFile(path)
 	if err != nil {
-		return Skipped, err
+		return OperationError, err
 	}
 
 	content := string(data)
@@ -170,11 +183,11 @@ func File(path string, license string, options *config.Options) (Operation, erro
 		}
 		if options.Replace {
 			if err := replaceLicense(path, content, license); err != nil {
-				return Skipped, err
+				return OperationError, err
 			}
 			return LicenseReplaced, nil
 		}
-		return Skipped, nil
+		return SkippedReplace, nil
 	}
 
 	if options.Verbose {
@@ -182,12 +195,11 @@ func File(path string, license string, options *config.Options) (Operation, erro
 	}
 	if options.Add {
 		if err := addLicense(path, content, license); err != nil {
-			return Skipped, err
+			return OperationError, err
 		}
 		return LicenseAdded, nil
 	}
-
-	return Skipped, nil
+	return SkippedAdd, nil
 }
 
 func addLicense(path string, content string, license string) error {

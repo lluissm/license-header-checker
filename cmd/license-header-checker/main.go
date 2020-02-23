@@ -84,11 +84,16 @@ func printStats(stats *process.Stats, options *config.Options) {
 		fmt.Printf(" · Replaced licenses: %s\n", licensesReplacedStr)
 		fmt.Printf(" · Processing time: %d ms\n", stats.ElapsedMs)
 	} else {
-		fmt.Printf("%d files => %s licenses ok, %s licenses replaced, %s licenses added", totalFiles, licensesOkStr, licensesReplacedStr, licensesAddedStr)
+		fmt.Printf("%d files => %s licenses ok, %s licenses replaced, %s licenses added\n", totalFiles, licensesOkStr, licensesReplacedStr, licensesAddedStr)
 	}
 
-	if stats.Skipped > 0 {
-		fmt.Println("")
-		color.Error.Printf("\n [!] %d operations were skipped. You may have forgotten to add one of the following flags -a (add), -r (replace) ", stats.Skipped)
+	if stats.SkippedAdds > 0 {
+		color.Error.Printf("[!] %d files had no license but where not changed as the -a (add) option was not supplied.\n", stats.SkippedAdds)
+	}
+	if stats.SkippedReplaces > 0 {
+		color.Error.Printf("[!] %d files had a different license but where not changed as the -r (replace) option was not supplied.\n", stats.SkippedReplaces)
+	}
+	if stats.Errors > 0 {
+		color.Error.Printf("[!] There where %d errors.\n", stats.Errors)
 	}
 }
