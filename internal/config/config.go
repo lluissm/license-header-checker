@@ -31,7 +31,7 @@ import (
 	"strings"
 )
 
-const version string = "1.0.0"
+var version string = "development"
 
 // Options that the program accepts via commandline arguments/flags
 type Options struct {
@@ -55,7 +55,7 @@ func ParseOptions() *Options {
 
 	flag.Parse()
 	if *versionFlagPtr {
-		fmt.Printf("version: v%s\n", version)
+		fmt.Printf("version: %s\n", version)
 		os.Exit(0)
 	}
 
