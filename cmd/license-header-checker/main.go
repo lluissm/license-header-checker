@@ -33,7 +33,6 @@ import (
 )
 
 func main() {
-	config.AssertGoodBuild()
 	options := config.ParseOptions()
 	printIntro(options)
 	stats, err := process.Files(options)
