@@ -157,7 +157,7 @@ func File(path string, license string, options *config.Options) (Operation, erro
 
 	content := string(data)
 
-	if strings.Contains(content, license) {
+	if strings.Contains(content, strings.TrimSpace(license)) {
 		if options.Verbose {
 			fmt.Printf(" · %s => %s", path, okRender("License ok\n"))
 		}

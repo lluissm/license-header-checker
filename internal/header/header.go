@@ -27,15 +27,6 @@ import (
 	"strings"
 )
 
-func removeEmptyLinesAtStart(content string) string {
-	for i, line := range strings.Split(strings.TrimSuffix(content, "\n"), "\n") {
-		if len(line) > 0 {
-			return content[i:]
-		}
-	}
-	return ""
-}
-
 // ContainsLicense returns true if the content contains the words license or copyright in a header comment
 func ContainsLicense(content string) bool {
 	header := strings.ToLower(Extract(content))
@@ -60,12 +51,12 @@ func Extract(content string) (header string) {
 func Remove(content string) string {
 	header := Extract(content)
 	body := strings.ReplaceAll(content, header, "")
-	return removeEmptyLinesAtStart(body)
+	return strings.TrimSpace(body)
 }
 
-// Insert inserts the provided header at the beginning of the content
+// Insert inserts the provided header at the beginning of the content separated by one empty line (trims both content and header)
 func Insert(content, header string) string {
-	return header + "\n\n" + content
+	return strings.TrimSpace(header) + "\n\n" + strings.TrimSpace(content)
 }
 
 // Replace removes the current header and inserts the provided one

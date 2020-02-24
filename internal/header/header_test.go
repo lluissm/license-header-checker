@@ -69,10 +69,3 @@ func TestReplaceHeader(t *testing.T) {
 	output := Replace(input, header)
 	assert.True(t, output == expected)
 }
-
-func TestRemoveEmptyLinesAtStart(t *testing.T) {
-	expected := "line 1\n\nline 2"
-	input := "\n\n\nline 1\n\nline 2"
-	output := removeEmptyLinesAtStart(input)
-	assert.True(t, output == expected)
-}
