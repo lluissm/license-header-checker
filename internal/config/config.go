@@ -31,9 +31,7 @@ import (
 	"strings"
 )
 
-const devVersion = "development"
-
-var version string = devVersion
+var version string = "development"
 
 // Options that the program accepts via commandline arguments/flags
 type Options struct {
