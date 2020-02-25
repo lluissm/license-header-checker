@@ -47,16 +47,16 @@ func Extract(content string) (header string) {
 	return ""
 }
 
-// Remove removes the header from the content as well as potential empty lines between the header and body
+// Remove removes the header from the content as well as potential empty lines between the header and the body
 func Remove(content string) string {
 	header := Extract(content)
 	body := strings.ReplaceAll(content, header, "")
-	return strings.TrimSpace(body)
+	return strings.TrimLeft(body, "\n")
 }
 
-// Insert inserts the provided header at the beginning of the content separated by one empty line (trims both content and header)
+// Insert inserts the provided header at the beginning of the content separated by one empty line
 func Insert(content, header string) string {
-	return strings.TrimSpace(header) + "\n\n" + strings.TrimSpace(content)
+	return strings.TrimSpace(header) + "\n\n" + strings.TrimLeft(content, "\n")
 }
 
 // Replace removes the current header and inserts the provided one

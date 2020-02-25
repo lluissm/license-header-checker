@@ -33,7 +33,8 @@ const server = http.createServer((req, res) => {
 res.statusCode = 200;
 res.setHeader('Content-Type', 'text/plain');
 res.end('Hello World');
-});`
+});
+`
 }
 
 func fakeTargetLicenseHeader() string {
@@ -52,7 +53,8 @@ func fakeTargetLicenseHeader() string {
 *
 * You should have received a copy of the GNU General Public License
 * along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/`
+*/
+`
 }
 
 func fakeFileWithTargetLicenseHeader() string {
@@ -82,7 +84,8 @@ const server = http.createServer((req, res) => {
 res.statusCode = 200;
 res.setHeader('Content-Type', 'text/plain');
 res.end('Hello World');
-});`
+});
+`
 }
 
 func fakeFileWithDifferentLicenseHeader() string {
@@ -119,5 +122,6 @@ const server = http.createServer((req, res) => {
 res.statusCode = 200;
 res.setHeader('Content-Type', 'text/plain');
 res.end('Hello World');
-});`
+});
+`
 }
