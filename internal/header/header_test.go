@@ -24,6 +24,7 @@ SOFTWARE.
 package header
 
 import (
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -36,7 +37,7 @@ func TestContainsLicense(t *testing.T) {
 }
 
 func TestExtractHeader(t *testing.T) {
-	expected := fakeTargetLicenseHeader()
+	expected := strings.TrimSpace(fakeTargetLicenseHeader())
 	input := fakeFileWithTargetLicenseHeader()
 	output := Extract(input)
 	assert.True(t, output == expected)
