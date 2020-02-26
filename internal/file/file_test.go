@@ -50,4 +50,6 @@ func TestFileShouldIgnore(t *testing.T) {
 	assert.False(t, ShouldIgnore("src/test.py", ignore))
 	assert.True(t, ShouldIgnore("dashboard/public/index.js", ignore))
 	assert.True(t, ShouldIgnore("client/assets/index.js", ignore))
+	assert.False(t, ShouldIgnore("webclient/assets/index.js", ignore))
+	assert.False(t, ShouldIgnore("dashboard/publicity/index.js", ignore))
 }
