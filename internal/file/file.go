@@ -42,12 +42,33 @@ func HasExtension(path string, extensions []string) bool {
 	return false
 }
 
+// containsPath returns true if path contains ignorePath
+func containsPath(path, ignorePath string) bool {
+	idx := strings.Index(path, ignorePath)
+	if idx < 0 {
+		return false
+	}
+	if idx > 0 {
+		leading := path[:idx]
+		if !strings.HasSuffix(leading, string(os.PathSeparator)) {
+			return false
+		}
+	}
+	if len(path) > (idx + len(ignorePath)) {
+		trailing := path[idx+len(ignorePath):]
+		if !strings.HasPrefix(trailing, string(os.PathSeparator)) {
+			return false
+		}
+	}
+	return true
+}
+
 // ShouldIgnore returns true if the path matches any of the ignore strings
-func ShouldIgnore(path string, ignoreFolders []string) bool {
+func ShouldIgnore(path string, ignores []string) bool {
 	segments := strings.Split(path, string(os.PathSeparator))
-	for _, ignore := range ignoreFolders {
+	for _, ignore := range ignores {
 		if strings.Contains(ignore, string(os.PathSeparator)) {
-			if strings.Contains(path, ignore) {
+			if containsPath(path, ignore) {
 				return true
 			}
 			continue
