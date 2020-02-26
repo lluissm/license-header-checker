@@ -52,7 +52,6 @@ var (
 
 func printIntro(options *config.Options) {
 	if options.Verbose {
-
 		fmt.Printf("Options: ")
 		fmt.Printf("\n · Project path: %s\n", infoRender(fmt.Sprintf("%s", options.Path)))
 		fmt.Printf(" · Ignore folders: %s\n", infoRender(fmt.Sprintf("%v", options.IgnorePaths)))
