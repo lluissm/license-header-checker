@@ -45,8 +45,14 @@ func HasExtension(path string, extensions []string) bool {
 // ShouldIgnore returns true if the path matches any of the ignore strings
 func ShouldIgnore(path string, ignoreFolders []string) bool {
 	segments := strings.Split(path, string(os.PathSeparator))
-	for _, segment := range segments {
-		for _, ignore := range ignoreFolders {
+	for _, ignore := range ignoreFolders {
+		if strings.Contains(ignore, string(os.PathSeparator)) {
+			if strings.Contains(path, ignore) {
+				return true
+			}
+			continue
+		}
+		for _, segment := range segments {
 			if segment == ignore {
 				return true
 			}
