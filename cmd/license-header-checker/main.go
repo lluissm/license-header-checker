@@ -34,6 +34,7 @@ import (
 
 func main() {
 	options := config.ParseOptions()
+	printIntro()
 	stats, err := process.Files(options)
 	if err != nil {
 		fmt.Println(errorRender(err))
@@ -50,6 +51,10 @@ var (
 	errorRender   = color.FgRed.Render
 )
 
+func printIntro() {
+	fmt.Printf("\nFiles:\n")
+}
+
 func printOptions(options *config.Options) {
 	if options.Verbose {
 
@@ -65,7 +70,6 @@ func printOptions(options *config.Options) {
 			fmt.Printf("%s ", infoRender("replace"))
 		}
 		fmt.Printf("\n · License header: %s\n", infoRender(fmt.Sprintf("%s", options.LicensePath)))
-		fmt.Printf("\nFiles:\n")
 	}
 }
 
