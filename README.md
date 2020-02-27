@@ -13,7 +13,7 @@ Optionally, the tool can **insert** the license in case it does not exist as wel
 Syntax:
 
 ```bash
-$ license-header-checker [-a] [-r] [-v] [-i dir1,dir2,file1,path1...] license-header-path project-path extensions...
+$ license-header-checker [-a] [-r] [-v] [-i path1,path2...] license-header-path src-path extensions...
 ```
 
 Options:
@@ -23,14 +23,14 @@ Options:
   -r        Replace the existing license by the target one in case they are different.
   -v        Be verbose during execution.
   -i        A comma separated list of the folders, files and/or paths that should be ignored. 
-	        It does not support wildcards.
+            It does not support wildcards.
   -version  Display version number.
 ```
 
 Example:
 
 ```bash
-$ license-header-checker -v -a -r -i node_modules,myFile.js,client/assets ../license_header.txt . js ts
+$ license-header-checker -v -a -r -i node_modules,file.js,client/assets ../license_header.txt . js ts
 ```
 
 ## Installation
