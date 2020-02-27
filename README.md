@@ -22,7 +22,7 @@ Options:
   -a        Add the target license in case the file does not have any.
   -r        Replace the existing license by the target one in case they are different.
   -v        Be verbose during execution.
-  -i        A comma separated list of the folders/files/paths that should be ignored. 
+  -i        A comma separated list of the folders, files and/or paths that should be ignored. 
 	        It does not support wildcards.
   -version  Display version number.
 ```
