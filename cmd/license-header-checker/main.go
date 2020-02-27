@@ -34,7 +34,7 @@ import (
 
 func main() {
 	options := config.ParseOptions()
-	printIntro()
+	printIntro(options)
 	stats, err := process.Files(options)
 	if err != nil {
 		fmt.Println(errorRender(err))
@@ -51,8 +51,10 @@ var (
 	errorRender   = color.FgRed.Render
 )
 
-func printIntro() {
-	fmt.Printf("\nFiles:\n")
+func printIntro(options *config.Options) {
+	if options.Verbose {
+		fmt.Printf("\nFiles:\n")
+	}
 }
 
 func printOptions(options *config.Options) {
