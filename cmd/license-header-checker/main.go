@@ -34,12 +34,13 @@ import (
 
 func main() {
 	options := config.ParseOptions()
-	printIntro(options)
+	printIntro()
 	stats, err := process.Files(options)
 	if err != nil {
 		fmt.Println(errorRender(err))
 		os.Exit(1)
 	}
+	printOptions(options)
 	printStats(stats, options)
 }
 
@@ -50,10 +51,14 @@ var (
 	errorRender   = color.FgRed.Render
 )
 
-func printIntro(options *config.Options) {
+func printIntro() {
+	fmt.Printf("\nFiles:\n")
+}
+
+func printOptions(options *config.Options) {
 	if options.Verbose {
 
-		fmt.Printf("Options: ")
+		fmt.Printf("\nOptions: ")
 		fmt.Printf("\n · Project path: %s\n", infoRender(fmt.Sprintf("%s", options.Path)))
 		fmt.Printf(" · Ignore folders: %s\n", infoRender(fmt.Sprintf("%v", options.IgnorePaths)))
 		fmt.Printf(" · Extensions: %s\n", infoRender(fmt.Sprintf("%v", options.Extensions)))
@@ -65,7 +70,6 @@ func printIntro(options *config.Options) {
 			fmt.Printf("%s ", infoRender("replace"))
 		}
 		fmt.Printf("\n · License header: %s\n", infoRender(fmt.Sprintf("%s", options.LicensePath)))
-		fmt.Printf("\nFiles:\n")
 	}
 }
 
