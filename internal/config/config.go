@@ -49,7 +49,7 @@ func ParseOptions() *Options {
 
 	writeFlagPtr := flag.Bool("a", false, "Add the target license in case the file does not have any.")
 	overwriteFlagPtr := flag.Bool("r", false, "Replace the existing license by the target one in case they are different.")
-	ignorePathsFlagPtr := flag.String("i", "", "A comma separated list of the folders/files that should be ignored.")
+	ignorePathsFlagPtr := flag.String("i", "", "A comma separated list of the folders, files and/or paths that should be ignored. Does not support wildcards.")
 	verboseFlagPtr := flag.Bool("v", false, "Be verbose during execution printing options, files being processed, execution time, ...")
 	versionFlagPtr := flag.Bool("version", false, "Display version number")
 

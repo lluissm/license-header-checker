@@ -28,6 +28,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"reflect"
 	"strings"
 )
 
@@ -42,12 +43,15 @@ func HasExtension(path string, extensions []string) bool {
 	return false
 }
 
-// ShouldIgnore returns true if the path matches any of the ignore strings
-func ShouldIgnore(path string, ignoreFolders []string) bool {
-	segments := strings.Split(path, string(os.PathSeparator))
-	for _, segment := range segments {
-		for _, ignore := range ignoreFolders {
-			if segment == ignore {
+// ShouldIgnore returns true if the path matches any of the paths to ignore
+func ShouldIgnore(path string, ignorePaths []string) bool {
+	pathSegments := strings.Split(path, string(os.PathSeparator))
+	for _, ignorePath := range ignorePaths {
+		ignorePathSegments := strings.Split(ignorePath, string(os.PathSeparator))
+		size := len(ignorePathSegments)
+		lastSegment := len(pathSegments) - size
+		for i := 0; i <= lastSegment; i++ {
+			if reflect.DeepEqual(pathSegments[i:i+size], ignorePathSegments) {
 				return true
 			}
 		}

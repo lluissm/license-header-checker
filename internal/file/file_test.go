@@ -37,16 +37,36 @@ func TestFileHasExtension(t *testing.T) {
 	assert.False(t, HasExtension("styles.css", extensions))
 }
 
-func TestFileShouldIgnore(t *testing.T) {
-	ignore := []string{"node_modules", "test", "docs", "dont_like_this_file.py"}
-	assert.True(t, ShouldIgnore("node_modules/index.js", ignore))
-	assert.True(t, ShouldIgnore("test/my-test.cpp", ignore))
-	assert.True(t, ShouldIgnore("dont_like_this_file.py", ignore))
-	assert.True(t, ShouldIgnore("myapp/docs/index.html", ignore))
-	assert.False(t, ShouldIgnore("node_modules/index.js", []string{}))
-	assert.False(t, ShouldIgnore("node_modules/index.js", nil))
-	assert.False(t, ShouldIgnore("src/testQ/my-file.cpp", ignore))
-	assert.False(t, ShouldIgnore("src/TestData.java", ignore))
-	assert.False(t, ShouldIgnore("src/test.py", ignore))
-	assert.False(t, ShouldIgnore("README.md", ignore))
+func TestFileShouldIgnoreFolder(t *testing.T) {
+	assert.True(t, ShouldIgnore("node_modules/index.js", []string{"node_modules"}))
+	assert.True(t, ShouldIgnore("src/test/fmt-test.cpp", []string{"test"}))
+	assert.False(t, ShouldIgnore("src/mytest/my-file.cpp", []string{"test"}))
+	assert.False(t, ShouldIgnore("src/testdata.py", []string{"test"}))
+}
+
+func TestFileShouldIgnoreFile(t *testing.T) {
+	assert.True(t, ShouldIgnore("neural.py", []string{"neural.py"}))
+	assert.True(t, ShouldIgnore("cmd/license-header-checker/main.go", []string{"main.go"}))
+	assert.False(t, ShouldIgnore("neural.py", []string{"neural"}))
+	assert.False(t, ShouldIgnore("cmd/license-header-checker/main.go", []string{"main"}))
+}
+
+func TestFileShouldIgnorePath(t *testing.T) {
+	assert.True(t, ShouldIgnore("dashboard/public/index.js", []string{"dashboard/public"}))
+	assert.True(t, ShouldIgnore("src/drivers/I2C.cpp", []string{"drivers/I2C.cpp"}))
+	assert.False(t, ShouldIgnore("dashboard/publicity/index.js", []string{"dashboard/public"}))
+	assert.False(t, ShouldIgnore("webclient/assets/index.js", []string{"client/assets"}))
+	assert.False(t, ShouldIgnore("mysrc/drivers/I2C.cpp", []string{"src/drivers/I2C.cpp"}))
+	assert.False(t, ShouldIgnore("src/drivers/I2C.cpp", []string{"/drivers/I2C"}))
+}
+
+func TestFileShouldIgnoreEmptyOrNil(t *testing.T) {
+	assert.False(t, ShouldIgnore("src/utils/stringutils.c", []string{}))
+	assert.False(t, ShouldIgnore("src/utils/stringutils.h", nil))
+}
+
+func TestFileShouldIgnoreUsesFullIgnoreList(t *testing.T) {
+	assert.True(t, ShouldIgnore("node_modules/index.js", []string{"node_modules", "docs", "test"}))
+	assert.True(t, ShouldIgnore("node_modules/index.js", []string{"docs", "node_modules", "test"}))
+	assert.True(t, ShouldIgnore("node_modules/index.js", []string{"docs", "test", "node_modules"}))
 }

@@ -34,7 +34,7 @@ import (
 
 func main() {
 	options := config.ParseOptions()
-	printIntro()
+	printIntro(options)
 	stats, err := process.Files(options)
 	if err != nil {
 		fmt.Println(errorRender(err))
@@ -51,13 +51,14 @@ var (
 	errorRender   = color.FgRed.Render
 )
 
-func printIntro() {
-	fmt.Printf("\nFiles:\n")
+func printIntro(options *config.Options) {
+	if options.Verbose {
+		fmt.Printf("\nFiles:\n")
+	}
 }
 
 func printOptions(options *config.Options) {
 	if options.Verbose {
-
 		fmt.Printf("\nOptions: ")
 		fmt.Printf("\n · Project path: %s\n", infoRender(fmt.Sprintf("%s", options.Path)))
 		fmt.Printf(" · Ignore folders: %s\n", infoRender(fmt.Sprintf("%v", options.IgnorePaths)))
