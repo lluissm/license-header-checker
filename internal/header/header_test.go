@@ -41,6 +41,11 @@ func TestExtractHeader(t *testing.T) {
 	input := fakeFileWithTargetLicenseHeader()
 	output := Extract(input)
 	assert.True(t, output == expected)
+
+	expected = "/* copyright */"
+	input = "/* copyright */\nlorem ipsum dolor sit amet"
+	output = Extract(input)
+	assert.True(t, output == expected)
 }
 
 func TestRemoveHeader(t *testing.T) {
