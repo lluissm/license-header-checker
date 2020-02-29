@@ -43,15 +43,15 @@ func HasExtension(path string, extensions []string) bool {
 	return false
 }
 
-// ShouldIgnore returns true if the path matches any of the ignore strings
-func ShouldIgnore(path string, ignores []string) bool {
-	segments := strings.Split(path, string(os.PathSeparator))
-	for _, ignore := range ignores {
-		sub := strings.Split(ignore, string(os.PathSeparator))
-		size := len(sub)
-		last := len(segments) - size
-		for i := 0; i <= last; i++ {
-			if reflect.DeepEqual(segments[i:i+size], sub) {
+// ShouldIgnore returns true if the path matches any of the paths to ignore
+func ShouldIgnore(path string, ignorePaths []string) bool {
+	pathSegments := strings.Split(path, string(os.PathSeparator))
+	for _, ignorePath := range ignorePaths {
+		ignorePathSegments := strings.Split(ignorePath, string(os.PathSeparator))
+		size := len(ignorePathSegments)
+		lastSegment := len(pathSegments) - size
+		for i := 0; i <= lastSegment; i++ {
+			if reflect.DeepEqual(pathSegments[i:i+size], ignorePathSegments) {
 				return true
 			}
 		}
