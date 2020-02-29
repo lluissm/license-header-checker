@@ -6,7 +6,13 @@
 
 Command line utility written in [Go](https://golang.org) to **check** whether the **license headers** are included in the **source files** of a project.
 
-Optionally, the tool can **insert** the license in case it does not exist as well as **replace** it in case it is obsolete.
+Optionally, the tool can **insert** the license to a file in case it does not exist as well as **replace** it in case it is obsolete.
+
+The recommendation is to use the tool directly in the root folder of the project as only the files that match the provided **extensions** will be analyzed. Furthermore, there is the possibility to **ignore specific files and folders** if necessary by providing the `-i` flag.
+
+The tool expects the software license to be in a **block comment at the beginning of the file** following the format `/*  */`. 
+
+Thus, while it does support the source files of languages like *Go, Rust, JavaScript, TypeScript, C, C++, Java, Swift, Kotlin and C#*, it does not support the file extensions that do not use this style.
 
 ## Usage
 
@@ -15,6 +21,8 @@ Syntax:
 ```bash
 $ license-header-checker [-a] [-r] [-v] [-i path1,path2...] license-header-path src-path extensions...
 ```
+
+
 
 Options:
 
