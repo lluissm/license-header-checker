@@ -20,7 +20,7 @@ jobs:
               dep ensure
           fi
       - name: Build
-        run: go build -v ./cmd/license-header-checker/main.go
+        run: go build -v ./cmd/license-header-checker
 
   test:
     name: Test
