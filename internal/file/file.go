@@ -60,13 +60,13 @@ func ShouldIgnore(path string, ignorePaths []string) bool {
 }
 
 // Replace remove the file and create a new one with the specified content
-func Replace(path string, content string) error {
-	err := os.Remove(path)
+func Replace(filePath string, content string) error {
+	err := os.Remove(filePath)
 	if err != nil {
 		return fmt.Errorf("failed deleting the file: %w", err)
 	}
 
-	file, err := os.OpenFile(path, os.O_CREATE|os.O_WRONLY, 0600)
+	file, err := os.OpenFile(filePath, os.O_CREATE|os.O_WRONLY, 0600)
 	if err != nil {
 		return fmt.Errorf("failed opening file: %w", err)
 	}

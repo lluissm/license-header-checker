@@ -24,21 +24,50 @@ SOFTWARE.
 package process
 
 import (
-	"fmt"
 	"io/ioutil"
 	"os"
 	"path/filepath"
 	"strings"
-	"sync"
-	"sync/atomic"
 	"time"
 
-	"github.com/gookit/color"
 	"github.com/lsm-dev/license-header-checker/internal/config"
 	"github.com/lsm-dev/license-header-checker/internal/file"
 	"github.com/lsm-dev/license-header-checker/internal/header"
 )
 
+type (
+	// Action performed when processing a file
+	Action int
+
+	// Operation is the result of processing one file
+	Operation struct {
+		Action Action
+		Path   string
+	}
+
+	// Stats is the result of processing multiple files
+	Stats struct {
+		Operations []*Operation
+		ElapsedMs  int64
+	}
+)
+
+const (
+	// SkippedAdd means that the file had no license but the new one was not added. Missing -a flasg
+	SkippedAdd Action = iota
+	// SkippedReplace means that the file had a different license but it was not replaced with the target one. Missing -r flag
+	SkippedReplace
+	// LicenseOk means that the license was OK
+	LicenseOk
+	// LicenseAdded means that the target license was added to the file
+	LicenseAdded
+	// LicenseReplaced means that the license was replaced by the target one
+	LicenseReplaced
+	// OperationError means there was an error with one of the files
+	OperationError
+)
+
+// getLicense reads the license from the provided path
 func getLicense(path string) (string, error) {
 	data, err := ioutil.ReadFile(path)
 	if err != nil {
@@ -47,65 +76,25 @@ func getLicense(path string) (string, error) {
 	return string(data), nil
 }
 
-type (
-	// Operation is the result of processing one file
-	Operation int
-
-	// Stats is the result of processing multiple files
-	Stats struct {
-		SkippedAdds      int64
-		SkippedReplaces  int64
-		LicensesOk       int64
-		LicensesAdded    int64
-		LicensesReplaced int64
-		Errors           int64
-		ElapsedMs        int64
-	}
-)
-
-// TotalOperations returns the sum of Skipped, LicensesOk, LicensesAdded and LicensesReplaced
-func (s *Stats) TotalOperations() int64 {
-	return s.SkippedAdds + s.SkippedReplaces + s.LicensesOk + s.LicensesAdded + s.LicensesReplaced
-}
-
-const (
-	// SkippedAdd means that the file had no license but the new one was not added. Missing -a flasg
-	SkippedAdd Operation = iota
-	// SkippedReplace means that the file had a different license but it was not replaced with the target one. Missing -r flag
-	SkippedReplace
-	// LicenseOk means that the license was OK
-	LicenseOk
-	// LicenseAdded means that the target license was added to the file
-	LicenseAdded
-	// LicenseReplaced means that the license was replaced with the target one
-	LicenseReplaced
-	// OperationError means there was an error with one of the files
-	OperationError
-)
-
-var (
-	okRender      = color.FgGreen.Render
-	warningRender = color.FgYellow.Render
-	errorRender   = color.FgRed.Render
-)
-
 // Files processes all files matching with options
 func Files(options *config.Options) (*Stats, error) {
-	start := time.Now()
-	var wg sync.WaitGroup
 
 	license, err := getLicense(options.LicensePath)
 	if err != nil {
 		return nil, err
 	}
 
-	var licenseOk, licenseAdded, licenseReplaced, skippedAdds, skippedReplaces, errors int64 = 0, 0, 0, 0, 0, 0
+	channel := make(chan *Operation)
+	start := time.Now()
+	files := 0
 
 	err = filepath.Walk(options.Path, func(path string, info os.FileInfo, err error) error {
-
 		if err != nil {
-			fmt.Printf("%s\n", errorRender("%s", err))
-			atomic.AddInt64(&errors, 1)
+			files++
+			channel <- &Operation{
+				Action: OperationError,
+				Path:   path,
+			}
 			return nil
 		}
 		if info.IsDir() {
@@ -118,96 +107,69 @@ func Files(options *config.Options) (*Stats, error) {
 			return nil
 		}
 
-		wg.Add(1)
+		files++
 		go func() {
-			defer wg.Done()
-
-			op, err := File(path, license, options)
-			if err != nil {
-				fmt.Printf("%s\n", errorRender("%s", err))
-			}
-
-			switch op {
-			case SkippedAdd:
-				atomic.AddInt64(&skippedAdds, 1)
-			case SkippedReplace:
-				atomic.AddInt64(&skippedReplaces, 1)
-			case LicenseOk:
-				atomic.AddInt64(&licenseOk, 1)
-			case LicenseReplaced:
-				atomic.AddInt64(&licenseReplaced, 1)
-			case LicenseAdded:
-				atomic.AddInt64(&licenseAdded, 1)
-			case OperationError:
-				atomic.AddInt64(&errors, 1)
+			action := File(path, license, options)
+			channel <- &Operation{
+				Action: action,
+				Path:   path,
 			}
 		}()
 
 		return nil
 	})
 
-	wg.Wait()
+	operations := []*Operation{}
+	for i := 0; i < files; i++ {
+		operations = append(operations, <-channel)
+	}
 
-	elapsed := time.Since(start)
+	elapsedTime := time.Since(start)
 	return &Stats{
-		SkippedAdds:      skippedAdds,
-		SkippedReplaces:  skippedReplaces,
-		LicensesOk:       licenseOk,
-		LicensesAdded:    licenseAdded,
-		LicensesReplaced: licenseReplaced,
-		ElapsedMs:        elapsed.Milliseconds(),
-		Errors:           errors,
+		Operations: operations,
+		ElapsedMs:  elapsedTime.Milliseconds(),
 	}, err
 }
 
 // File processes the file
-func File(path string, license string, options *config.Options) (Operation, error) {
+func File(filePath string, license string, options *config.Options) Action {
 
-	data, err := ioutil.ReadFile(path)
+	data, err := ioutil.ReadFile(filePath)
 	if err != nil {
-		return OperationError, err
+		return OperationError
 	}
 
-	content := string(data)
+	fileContent := string(data)
 
-	if strings.Contains(content, strings.TrimSpace(license)) {
-		if options.Verbose {
-			fmt.Printf(" · %s => %s", path, okRender("License ok\n"))
-		}
-		return LicenseOk, nil
+	if strings.Contains(fileContent, strings.TrimSpace(license)) {
+		return LicenseOk
 	}
 
-	if header.ContainsLicense(content) {
-		if options.Verbose {
-			fmt.Printf(" · %s => %s", path, warningRender("License is different\n"))
-		}
+	if header.ContainsLicense(fileContent) {
 		if options.Replace {
-			if err := replaceLicense(path, content, license); err != nil {
-				return OperationError, err
+			if err := replaceLicense(filePath, fileContent, license); err != nil {
+				return OperationError
 			}
-			return LicenseReplaced, nil
+			return LicenseReplaced
 		}
-		return SkippedReplace, nil
+		return SkippedReplace
 	}
 
-	if options.Verbose {
-		fmt.Printf(" · %s => %s", path, errorRender("License missing\n"))
-	}
 	if options.Add {
-		if err := addLicense(path, content, license); err != nil {
-			return OperationError, err
+		if err := addLicense(filePath, fileContent, license); err != nil {
+			return OperationError
 		}
-		return LicenseAdded, nil
+		return LicenseAdded
 	}
-	return SkippedAdd, nil
+	return SkippedAdd
 }
 
-func addLicense(path string, content string, license string) error {
-	res := header.Insert(content, license)
-	return file.Replace(path, res)
+func addLicense(filePath string, fileContent string, license string) error {
+	newFileContent := header.Insert(fileContent, license)
+	return file.Replace(filePath, newFileContent)
 }
 
-func replaceLicense(path string, content string, license string) error {
-	res := header.Replace(content, license)
-	return file.Replace(path, res)
+func replaceLicense(filePath string, fileContent string, license string) error {
+	newFileContent := header.Replace(fileContent, license)
+	return file.Replace(filePath, newFileContent)
 }
