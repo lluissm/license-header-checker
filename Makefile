@@ -1,4 +1,4 @@
-.PHONY: all clean build test install cross-build
+.PHONY: all clean build test install cross-build test-e2e
 
 all: build test
 
@@ -16,13 +16,15 @@ clean:
 build:
 	@echo "=> Building project"
 	@go mod tidy
-	@mkdir -p $(BIN_PATH)
-	@cd $(BIN_PATH)
 	@go build -v $(LD_FLAGS) -o $(BIN_PATH)/$(CMD) $(BUILD_PATH)
 
 test:
-	@echo "=> Executing unit tests"
-	@go test ./...
+	@echo "=> Running unit tests"
+	@go test -cover ./...
+
+test-e2e: build
+	@echo "=> Executing end to end tests"
+	@cd test && bash test.sh ../$(BIN_PATH)/$(CMD)
 
 install:
 	@echo "=> Installing ${CMD} ${VERSION} in go/bin"
