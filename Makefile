@@ -1,4 +1,4 @@
-.PHONY: all clean build test install cross-build test-e2e
+.PHONY: all clean build test test-e2e install cross-build cross-pack
 
 all: build test
 
@@ -31,10 +31,29 @@ install:
 	@go install $(LD_FLAGS) $(BUILD_PATH)
 
 cross-build: clean
-	@for OS in darwin linux windows; do														\
-		for ARCH in 386 amd64; do															\
-			echo "=> Building $$OS-$$ARCH";													\
-			env GOOS=$$OS GOARCH=$$ARCH														\
-			go build $(LD_FLAGS) -o $(BIN_PATH)/targets/$$OS/$$ARCH/$(CMD) $(BUILD_PATH);	\
-		done																				\
+	@for OS in darwin linux windows; do								\
+		for ARCH in 386 amd64; do									\
+			fos=$$OS;												\
+			if [ $$OS = "darwin" ]; then							\
+				fos=mac;											\
+			fi;														\
+			farch=32bit;											\
+			if [ $$ARCH = "amd64" ]; then							\
+				farch=64bit;										\
+			fi;														\
+			fname=$(BIN_PATH)/targets/$(CMD)-$$fos/$$farch/$(CMD);	\
+			if [ $$OS = "windows" ]; then							\
+				fname=$$fname.exe;									\
+			fi;														\
+			echo "=> Building $$fos $$farch";						\
+			env GOOS=$$OS GOARCH=$$ARCH								\
+			go build $(LD_FLAGS) -o $$fname $(BUILD_PATH);			\
+		done														\
 	done
+
+cross-pack: cross-build
+	@echo "=> Zipping folders"
+	@cd $(BIN_PATH)/targets/ && for OS in mac linux windows; do		\
+		zip -q -r ../$(CMD)-$$OS.zip $(CMD)-$$OS -x "*/\*";			\
+	done
+	@rm -rf $(BIN_PATH)/targets
