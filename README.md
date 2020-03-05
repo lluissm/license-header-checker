@@ -1,30 +1,29 @@
-![Demo](demo/demo.gif)
-
-# license-header-checker
+![Header](images/header.png)
 
 ![Build Status](https://github.com/lsm-dev/license-header-checker/workflows/Build/badge.svg)   ![Test Status](https://github.com/lsm-dev/license-header-checker/workflows/Test/badge.svg)
 
-Command line utility written in [Go](https://golang.org) to **check** whether the **license headers** are included in the **source files** of a project.
+Multiplatform command line tool that **checks** whether the **license headers** are included in the **source files** of a project.
 
-Optionally, the tool can **insert** the license to a file in case it does not exist as well as **replace** it in case it is obsolete.
+- It can **insert the license** to a file in case it does not exist (optional).
+- It can **replace the license** of a file in case it is different (optional).
+- It is possible to **choose the file extensions that will be processed**.
+- Specific **folders, filers or paths can be ignored**.
 
-The recommendation is to use the tool directly in the root folder of the project as only the files that match the provided **extensions** will be analyzed. Furthermore, there is the possibility to **ignore specific files and folders** if necessary by providing the `-i` flag.
+_DISCLAIMER_
 
 The tool expects the software license to be in a **block comment at the beginning of the file** following the format `/*  */`. 
 
 Thus, while it does support the source files of languages like *Go, Rust, JavaScript, TypeScript, C, C++, Java, Swift, Kotlin and C#*, it does not support the file extensions that do not use this style.
 
-The tool has been built with [go 1.13](https://golang.org/doc/devel/release.html#go1.13) and the build process is automated with `make`.
+# Usage
 
-## Usage
-
-Syntax:
+## Syntax
 
 ```bash
 $ license-header-checker [-a] [-r] [-v] [-i path1,...] license-header-path src-path extensions...
 ```
 
-Options:
+## Options
 
 ```
   -a        Add the target license in case the file does not have any.
@@ -35,20 +34,20 @@ Options:
   -version  Display version number.
 ```
 
-Example:
+## Example
 
 ```bash
 $ license-header-checker -v -a -r -i node_modules,client/assets ../license_header.txt . js ts
 ```
 
-## Installation
+# Installation
 
-### Binary packages
+## Binary packages
 
 The binary packages for Linux, Windows and macOS are uploaded for each release and can be downloaded from [here](https://github.com/lsm-dev/license-header-checker/releases).
 
-### Building from source
-
+## Building from source
+The tool has been built with [go 1.13](https://golang.org/doc/devel/release.html#go1.13).
 
 To **build**:
 
