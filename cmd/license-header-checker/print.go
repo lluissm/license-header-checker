@@ -27,7 +27,6 @@ import (
 	"fmt"
 
 	"github.com/gookit/color"
-	"github.com/lsm-dev/license-header-checker/internal/config"
 	"github.com/lsm-dev/license-header-checker/internal/process"
 )
 
@@ -39,7 +38,7 @@ var (
 )
 
 // printStats prints the options, files processed and aggregate data
-func printStats(stats *process.Stats, options *config.Options) {
+func printStats(verbose bool, stats *process.Stats, options *process.Options) {
 	var licensesOk, licensesAdded, licensesReplaced, skippedAdds, skippedReplaces, errors []string
 
 	for _, op := range stats.Operations {
@@ -60,9 +59,9 @@ func printStats(stats *process.Stats, options *config.Options) {
 		}
 	}
 
-	if options.Verbose {
-		printFiles(licensesOk, licensesReplaced, licensesAdded, skippedReplaces, skippedAdds, errors)
-		printOptions(options)
+	if verbose {
+		printProcessedFiles(licensesOk, licensesReplaced, licensesAdded, skippedReplaces, skippedAdds, errors)
+		printProcessOptions(options)
 		printTotals(len(licensesOk), len(licensesReplaced), len(licensesAdded), len(skippedReplaces), len(skippedAdds), len(errors), int(stats.ElapsedMs))
 	} else {
 		fmt.Printf("%s licenses ok, %s licenses replaced, %s licenses added\n", okRender(fmt.Sprintf("%d", len(licensesOk))), warningRender(fmt.Sprintf("%d", len(licensesReplaced))), errorRender(fmt.Sprintf("%d", len(licensesAdded))))
@@ -71,8 +70,8 @@ func printStats(stats *process.Stats, options *config.Options) {
 	printWarnings(len(skippedReplaces), len(skippedAdds), len(errors))
 }
 
-// printFiles prints the the output of each file grouped by result type
-func printFiles(licensesOk, licensesReplaced, licensesAdded, skippedReplaces, skippedAdds, errors []string) {
+// printProcessedFiles prints the the output of each file grouped by result type
+func printProcessedFiles(licensesOk, licensesReplaced, licensesAdded, skippedReplaces, skippedAdds, errors []string) {
 	fmt.Printf("files:\n")
 	if len(licensesOk) > 0 {
 		fmt.Printf("  license_ok:\n")
@@ -112,8 +111,8 @@ func printFiles(licensesOk, licensesReplaced, licensesAdded, skippedReplaces, sk
 	}
 }
 
-// printOptions prints the options that were supplied to the cli app
-func printOptions(options *config.Options) {
+// printProcessOptions prints the options that were supplied to the cli app
+func printProcessOptions(options *process.Options) {
 	fmt.Printf("options:\n")
 	fmt.Printf("  project_path: %s\n", infoRender(fmt.Sprintf("%s", options.Path)))
 	if len(options.IgnorePaths) > 0 {
@@ -132,9 +131,6 @@ func printOptions(options *config.Options) {
 	}
 	if options.Replace {
 		fmt.Printf("    - %s\n", infoRender("replace"))
-	}
-	if options.Verbose {
-		fmt.Printf("    - %s\n", infoRender("verbose"))
 	}
 	fmt.Printf("  license_header: %s\n", infoRender(fmt.Sprintf("%s", options.LicensePath)))
 }

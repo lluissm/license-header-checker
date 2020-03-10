@@ -25,18 +25,26 @@ package main
 
 import (
 	"fmt"
+	"log"
 	"os"
 
-	"github.com/lsm-dev/license-header-checker/internal/config"
 	"github.com/lsm-dev/license-header-checker/internal/process"
 )
 
+var version string = "development"
+
 func main() {
-	options := config.ParseOptions()
-	stats, err := process.Files(options)
+	options, err := parseOptions(os.Args)
 	if err != nil {
-		fmt.Println(err.Error())
-		os.Exit(1)
+		log.Fatal(err.Error())
 	}
-	printStats(stats, options)
+	if options.ShowVersion {
+		fmt.Printf("version: %s\n", version)
+		os.Exit(0)
+	}
+	stats, err := process.Files(options.Process)
+	if err != nil {
+		log.Fatal(err.Error())
+	}
+	printStats(options.Verbose, stats, options.Process)
 }

@@ -24,14 +24,15 @@ SOFTWARE.
 package process
 
 import (
+	"bufio"
+	"fmt"
 	"io/ioutil"
 	"os"
 	"path/filepath"
+	"reflect"
 	"strings"
 	"time"
 
-	"github.com/lsm-dev/license-header-checker/internal/config"
-	"github.com/lsm-dev/license-header-checker/internal/file"
 	"github.com/lsm-dev/license-header-checker/internal/header"
 )
 
@@ -50,6 +51,16 @@ type (
 		Operations []*Operation
 		ElapsedMs  int64
 	}
+
+	// Options to be followed during processing
+	Options struct {
+		Add         bool
+		Replace     bool
+		Path        string
+		LicensePath string
+		Extensions  []string
+		IgnorePaths []string
+	}
 )
 
 const (
@@ -67,17 +78,8 @@ const (
 	OperationError
 )
 
-// getLicense reads the license from the provided path
-func getLicense(path string) (string, error) {
-	data, err := ioutil.ReadFile(path)
-	if err != nil {
-		return "", err
-	}
-	return string(data), nil
-}
-
-// Files processes all files matching with options
-func Files(options *config.Options) (*Stats, error) {
+// Files processes all files in the path that match the options
+func Files(options *Options) (*Stats, error) {
 
 	license, err := getLicense(options.LicensePath)
 	if err != nil {
@@ -100,10 +102,10 @@ func Files(options *config.Options) (*Stats, error) {
 		if info.IsDir() {
 			return nil
 		}
-		if file.ShouldIgnore(path, options.IgnorePaths) {
+		if shouldIgnorePath(path, options.IgnorePaths) {
 			return nil
 		}
-		if !file.HasExtension(path, options.Extensions) {
+		if shouldIgnoreExtension(path, options.Extensions) {
 			return nil
 		}
 
@@ -131,8 +133,8 @@ func Files(options *config.Options) (*Stats, error) {
 	}, err
 }
 
-// File processes the file
-func File(filePath string, license string, options *config.Options) Action {
+// File processes one file
+func File(filePath string, license string, options *Options) Action {
 
 	data, err := ioutil.ReadFile(filePath)
 	if err != nil {
@@ -164,12 +166,74 @@ func File(filePath string, license string, options *config.Options) Action {
 	return SkippedAdd
 }
 
+// getLicense reads the license from the path
+func getLicense(path string) (string, error) {
+	data, err := ioutil.ReadFile(path)
+	if err != nil {
+		return "", err
+	}
+	return string(data), nil
+}
+
+// shouldIgnore returns true if the path matches any of the paths to ignore
+func shouldIgnorePath(path string, ignorePaths []string) bool {
+	pathSegments := strings.Split(path, string(os.PathSeparator))
+	for _, ignorePath := range ignorePaths {
+		ignorePathSegments := strings.Split(ignorePath, string(os.PathSeparator))
+		size := len(ignorePathSegments)
+		lastSegment := len(pathSegments) - size
+		for i := 0; i <= lastSegment; i++ {
+			if reflect.DeepEqual(pathSegments[i:i+size], ignorePathSegments) {
+				return true
+			}
+		}
+	}
+	return false
+}
+
+// shouldIgnoreExtension returns false only if the file's extension is one of the provided ones
+func shouldIgnoreExtension(path string, extensions []string) bool {
+	fileExtension := filepath.Ext(path)
+	for _, ext := range extensions {
+		if fileExtension == ext {
+			return false
+		}
+	}
+	return true
+}
+
 func addLicense(filePath string, fileContent string, license string) error {
 	newFileContent := header.Insert(fileContent, license)
-	return file.Replace(filePath, newFileContent)
+	return replaceFile(filePath, newFileContent)
 }
 
 func replaceLicense(filePath string, fileContent string, license string) error {
 	newFileContent := header.Replace(fileContent, license)
-	return file.Replace(filePath, newFileContent)
+	return replaceFile(filePath, newFileContent)
+}
+
+// replaceFile removes the file and create a new one with the specified content
+func replaceFile(filePath string, content string) error {
+	err := os.Remove(filePath)
+	if err != nil {
+		return fmt.Errorf("failed deleting the file: %w", err)
+	}
+
+	file, err := os.OpenFile(filePath, os.O_CREATE|os.O_WRONLY, 0600)
+	if err != nil {
+		return fmt.Errorf("failed opening file: %w", err)
+	}
+	defer file.Close()
+
+	writer := bufio.NewWriter(file)
+	_, err = writer.WriteString(content)
+	if err != nil {
+		return fmt.Errorf("failed writing to file: %w", err)
+	}
+
+	if err = writer.Flush(); err != nil {
+		return fmt.Errorf("failed writing to file: %w", err)
+	}
+
+	return nil
 }

@@ -66,12 +66,17 @@ To **cross-compile** (generate the binaries for Linux, Windows and macOS all at 
 ```bash
 $ make cross-build
 ```
-To run **unit** tests:
+To run **unit tests**:
 
 ```bash
 $ make test
 ```
-To run **end-to-end** tests:
+To see **unit test coverage**:
+
+```bash
+$ make test-cover
+```
+To run **end-to-end tests**:
 
 ```bash
 $ make test-e2e

@@ -35,6 +35,14 @@ on_success() {
 	echo -e "${GREEN}OK${NC}"
 }
 
+run_test $CMD '-version' 'Testing version...' result
+
+if [[ $result =~ $'version:' ]]; then
+	on_success
+else
+	on_failure
+fi
+
 run_test $CMD '' 'Testing read only...' result
 
 if [[ $result =~ $'1 licenses ok, 0 licenses replaced, 0 licenses added' && \
