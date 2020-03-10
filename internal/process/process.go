@@ -81,10 +81,11 @@ const (
 // Files processes all files in the path that match the options
 func Files(options *Options) (*Stats, error) {
 
-	license, err := getLicense(options.LicensePath)
+	data, err := ioutil.ReadFile(options.LicensePath)
 	if err != nil {
 		return nil, err
 	}
+	license := string(data)
 
 	channel := make(chan *Operation)
 	start := time.Now()
@@ -173,15 +174,6 @@ func File(filePath string, fileContent string, license string, options *Options,
 		return LicenseAdded
 	}
 	return SkippedAdd
-}
-
-// getLicense reads the license from the path
-func getLicense(path string) (string, error) {
-	data, err := ioutil.ReadFile(path)
-	if err != nil {
-		return "", err
-	}
-	return string(data), nil
 }
 
 // shouldIgnore returns true if the path matches any of the paths to ignore
