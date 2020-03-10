@@ -109,9 +109,23 @@ func Files(options *Options) (*Stats, error) {
 			return nil
 		}
 
+		data, err := ioutil.ReadFile(path)
+		if err != nil {
+			files++
+			channel <- &Operation{
+				Action: OperationError,
+				Path:   path,
+			}
+			return nil
+		}
+
+		fileContent := string(data)
+
 		files++
 		go func() {
-			action := File(path, license, options)
+
+			var handler = new(Handler)
+			action := File(path, fileContent, license, options, handler)
 			channel <- &Operation{
 				Action: action,
 				Path:   path,
@@ -134,14 +148,7 @@ func Files(options *Options) (*Stats, error) {
 }
 
 // File processes one file
-func File(filePath string, license string, options *Options) Action {
-
-	data, err := ioutil.ReadFile(filePath)
-	if err != nil {
-		return OperationError
-	}
-
-	fileContent := string(data)
+func File(filePath string, fileContent string, license string, options *Options, handler fileHandler) Action {
 
 	if strings.Contains(fileContent, strings.TrimSpace(license)) {
 		return LicenseOk
@@ -149,7 +156,8 @@ func File(filePath string, license string, options *Options) Action {
 
 	if header.ContainsLicense(fileContent) {
 		if options.Replace {
-			if err := replaceLicense(filePath, fileContent, license); err != nil {
+			newContent := header.Replace(fileContent, license)
+			if err := handler.replaceFileContent(filePath, newContent); err != nil {
 				return OperationError
 			}
 			return LicenseReplaced
@@ -158,7 +166,8 @@ func File(filePath string, license string, options *Options) Action {
 	}
 
 	if options.Add {
-		if err := addLicense(filePath, fileContent, license); err != nil {
+		newContent := header.Insert(fileContent, license)
+		if err := handler.replaceFileContent(filePath, newContent); err != nil {
 			return OperationError
 		}
 		return LicenseAdded
@@ -202,18 +211,14 @@ func shouldIgnoreExtension(path string, extensions []string) bool {
 	return true
 }
 
-func addLicense(filePath string, fileContent string, license string) error {
-	newFileContent := header.Insert(fileContent, license)
-	return replaceFile(filePath, newFileContent)
+type fileHandler interface {
+	replaceFileContent(filePath string, content string) error
 }
 
-func replaceLicense(filePath string, fileContent string, license string) error {
-	newFileContent := header.Replace(fileContent, license)
-	return replaceFile(filePath, newFileContent)
-}
+// Handler handles adding and replacing license to a file
+type Handler struct{}
 
-// replaceFile removes the file and create a new one with the specified content
-func replaceFile(filePath string, content string) error {
+func (s *Handler) replaceFileContent(filePath string, content string) error {
 	err := os.Remove(filePath)
 	if err != nil {
 		return fmt.Errorf("failed deleting the file: %w", err)

@@ -27,18 +27,19 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/lsm-dev/license-header-checker/internal/testdata"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestContainsLicense(t *testing.T) {
-	assert.True(t, ContainsLicense(fakeFileWithTargetLicenseHeader()))
-	assert.True(t, ContainsLicense(fakeFileWithDifferentLicenseHeader()))
-	assert.False(t, ContainsLicense(fakeFileWithoutLicense()))
+	assert.True(t, ContainsLicense(testdata.FakeFileWithTargetLicenseHeader()))
+	assert.True(t, ContainsLicense(testdata.FakeFileWithDifferentLicenseHeader()))
+	assert.False(t, ContainsLicense(testdata.FakeFileWithoutLicense()))
 }
 
 func TestExtractHeader(t *testing.T) {
-	expected := strings.TrimSpace(fakeTargetLicenseHeader())
-	input := fakeFileWithTargetLicenseHeader()
+	expected := strings.TrimSpace(testdata.FakeTargetLicenseHeader())
+	input := testdata.FakeFileWithTargetLicenseHeader()
 	output := Extract(input)
 	assert.True(t, output == expected)
 
@@ -49,29 +50,29 @@ func TestExtractHeader(t *testing.T) {
 }
 
 func TestRemoveHeader(t *testing.T) {
-	expected := fakeFileWithoutLicense()
+	expected := testdata.FakeFileWithoutLicense()
 
-	input := fakeFileWithTargetLicenseHeader()
+	input := testdata.FakeFileWithTargetLicenseHeader()
 	output := Remove(input)
 	assert.True(t, output == expected)
 
-	input = fakeFileWithDifferentLicenseHeader()
+	input = testdata.FakeFileWithDifferentLicenseHeader()
 	output = Remove(input)
 	assert.True(t, output == expected)
 }
 
 func TestInsertHeader(t *testing.T) {
-	expected := fakeFileWithTargetLicenseHeader()
-	input := fakeFileWithoutLicense()
-	header := fakeTargetLicenseHeader()
+	expected := testdata.FakeFileWithTargetLicenseHeader()
+	input := testdata.FakeFileWithoutLicense()
+	header := testdata.FakeTargetLicenseHeader()
 	output := Insert(input, header)
 	assert.True(t, output == expected)
 }
 
 func TestReplaceHeader(t *testing.T) {
-	expected := fakeFileWithTargetLicenseHeader()
-	input := fakeFileWithDifferentLicenseHeader()
-	header := fakeTargetLicenseHeader()
+	expected := testdata.FakeFileWithTargetLicenseHeader()
+	input := testdata.FakeFileWithDifferentLicenseHeader()
+	header := testdata.FakeTargetLicenseHeader()
 	output := Replace(input, header)
 	assert.True(t, output == expected)
 }

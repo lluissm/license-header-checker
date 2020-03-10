@@ -21,9 +21,10 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
-package header
+package testdata
 
-func fakeFileWithoutLicense() string {
+// FakeFileWithoutLicense is a fake file that does not have any license
+func FakeFileWithoutLicense() string {
 	return `const http = require('http');
 
 const hostname = '127.0.0.1';
@@ -37,7 +38,8 @@ res.end('Hello World');
 `
 }
 
-func fakeTargetLicenseHeader() string {
+// FakeTargetLicenseHeader is the target license
+func FakeTargetLicenseHeader() string {
 	return `/*
 * This file is part of the XXX distribution (https://github.com/xxxx or http://xxx.github.io).
 * Copyright (c) 2020 The Autor.
@@ -57,7 +59,8 @@ func fakeTargetLicenseHeader() string {
 `
 }
 
-func fakeFileWithTargetLicenseHeader() string {
+// FakeFileWithTargetLicenseHeader is a fake file that has the target license
+func FakeFileWithTargetLicenseHeader() string {
 	return `/*
 * This file is part of the XXX distribution (https://github.com/xxxx or http://xxx.github.io).
 * Copyright (c) 2020 The Autor.
@@ -88,7 +91,8 @@ res.end('Hello World');
 `
 }
 
-func fakeFileWithDifferentLicenseHeader() string {
+// FakeFileWithDifferentLicenseHeader is a fake file with a license that is not the target one
+func FakeFileWithDifferentLicenseHeader() string {
 	return `/*
 * MIT License
 *
