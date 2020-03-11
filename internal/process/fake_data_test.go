@@ -21,7 +21,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
-package testdata
+package process
 
 // FakeFileWithoutLicense is a fake file that does not have any license
 const FakeFileWithoutLicense = `const http = require('http');

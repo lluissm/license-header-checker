@@ -24,15 +24,45 @@ SOFTWARE.
 package process
 
 import (
-	"testing"
-
-	"github.com/stretchr/testify/assert"
+	"bufio"
+	"fmt"
+	"io/ioutil"
+	"os"
+	"path/filepath"
 )
 
-func TestShouldIgnoreExtension(t *testing.T) {
-	extensions := []string{".js", ".md"}
-	assert.False(t, shouldIgnoreExtension("file.js", extensions))
-	assert.False(t, shouldIgnoreExtension("readme.md", extensions))
-	assert.True(t, shouldIgnoreExtension("index.html", extensions))
-	assert.True(t, shouldIgnoreExtension("styles.css", extensions))
+// ioHandler handles all necessary io operations
+type ioHandler struct{}
+
+func (s *ioHandler) ReadFile(filename string) ([]byte, error) {
+	return ioutil.ReadFile(filename)
+}
+
+func (s *ioHandler) Walk(path string, walkFn filepath.WalkFunc) error {
+	return filepath.Walk(path, walkFn)
+}
+
+func (s *ioHandler) ReplaceFileContent(filePath string, content string) error {
+	err := os.Remove(filePath)
+	if err != nil {
+		return fmt.Errorf("failed deleting the file: %w", err)
+	}
+
+	file, err := os.OpenFile(filePath, os.O_CREATE|os.O_WRONLY, 0600)
+	if err != nil {
+		return fmt.Errorf("failed opening file: %w", err)
+	}
+	defer file.Close()
+
+	writer := bufio.NewWriter(file)
+	_, err = writer.WriteString(content)
+	if err != nil {
+		return fmt.Errorf("failed writing to file: %w", err)
+	}
+
+	if err = writer.Flush(); err != nil {
+		return fmt.Errorf("failed writing to file: %w", err)
+	}
+
+	return nil
 }

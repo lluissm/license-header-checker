@@ -20,7 +20,7 @@ build:
 
 test:
 	@echo "=> Running unit tests"
-	@go test ./...
+	@go test -cover ./...
 
 test-cover:
 	@echo "=> Running unit tests and checking coverage"

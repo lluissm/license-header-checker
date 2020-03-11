@@ -26,7 +26,6 @@ package process
 import (
 	"testing"
 
-	"github.com/lsm-dev/license-header-checker/internal/testdata"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -42,10 +41,10 @@ func options() *Options {
 
 func TestLicenseOk(t *testing.T) {
 	filePath := "main.cpp"
-	license := testdata.FakeTargetLicenseHeader
-	fileContent := testdata.FakeFileWithTargetLicenseHeader
+	license := FakeTargetLicenseHeader
+	fileContent := FakeFileWithTargetLicenseHeader
 	options := options()
-	handler := new(FakeHandlerSuccess)
+	handler := new(FakeIoHandlerSuccess)
 
 	op := File(filePath, fileContent, license, options, handler)
 	assert.True(t, op == LicenseOk)
@@ -53,11 +52,11 @@ func TestLicenseOk(t *testing.T) {
 
 func TestAddLicense(t *testing.T) {
 	filePath := "main.cpp"
-	license := testdata.FakeTargetLicenseHeader
-	fileContent := testdata.FakeFileWithoutLicense
+	license := FakeTargetLicenseHeader
+	fileContent := FakeFileWithoutLicense
 	options := options()
-	handler := new(FakeHandlerSuccess)
-	handlerError := new(FakeHandlerError)
+	handler := new(FakeIoHandlerSuccess)
+	handlerError := new(FakeIoHandlerError)
 
 	options.Add = false
 	op := File(filePath, fileContent, license, options, handler)
@@ -74,11 +73,11 @@ func TestAddLicense(t *testing.T) {
 
 func TestReplaceLicense(t *testing.T) {
 	filePath := "main.cpp"
-	license := testdata.FakeTargetLicenseHeader
-	fileContent := testdata.FakeFileWithDifferentLicenseHeader
+	license := FakeTargetLicenseHeader
+	fileContent := FakeFileWithDifferentLicenseHeader
 	options := options()
-	handler := new(FakeHandlerSuccess)
-	handlerError := new(FakeHandlerError)
+	handler := new(FakeIoHandlerSuccess)
+	handlerError := new(FakeIoHandlerError)
 
 	options.Replace = false
 	op := File(filePath, fileContent, license, options, handler)

@@ -29,21 +29,29 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestFileShouldIgnoreFolder(t *testing.T) {
+func TestShouldIgnoreExtension(t *testing.T) {
+	extensions := []string{".js", ".md"}
+	assert.False(t, shouldIgnoreExtension("file.js", extensions))
+	assert.False(t, shouldIgnoreExtension("readme.md", extensions))
+	assert.True(t, shouldIgnoreExtension("index.html", extensions))
+	assert.True(t, shouldIgnoreExtension("styles.css", extensions))
+}
+
+func TestShouldIgnoreFolder(t *testing.T) {
 	assert.True(t, shouldIgnorePath("node_modules/index.js", []string{"node_modules"}))
 	assert.True(t, shouldIgnorePath("src/test/fmt-test.cpp", []string{"test"}))
 	assert.False(t, shouldIgnorePath("src/mytest/my-file.cpp", []string{"test"}))
 	assert.False(t, shouldIgnorePath("src/testdata.py", []string{"test"}))
 }
 
-func TestFileShouldIgnoreFile(t *testing.T) {
+func TestShouldIgnoreFile(t *testing.T) {
 	assert.True(t, shouldIgnorePath("neural.py", []string{"neural.py"}))
 	assert.True(t, shouldIgnorePath("cmd/license-header-checker/main.go", []string{"main.go"}))
 	assert.False(t, shouldIgnorePath("neural.py", []string{"neural"}))
 	assert.False(t, shouldIgnorePath("cmd/license-header-checker/main.go", []string{"main"}))
 }
 
-func TestFileShouldIgnorePath(t *testing.T) {
+func TestShouldIgnorePath(t *testing.T) {
 	assert.True(t, shouldIgnorePath("dashboard/public/index.js", []string{"dashboard/public"}))
 	assert.True(t, shouldIgnorePath("src/drivers/I2C.cpp", []string{"drivers/I2C.cpp"}))
 	assert.False(t, shouldIgnorePath("dashboard/publicity/index.js", []string{"dashboard/public"}))

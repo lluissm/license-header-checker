@@ -21,22 +21,22 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
-package header
+package process
 
 import (
 	"strings"
 )
 
-// ContainsLicense returns true if the content contains the words license or copyright in a header comment
-func ContainsLicense(content string) bool {
-	header := strings.ToLower(Extract(content))
+// containsLicenseHeader returns true if the content contains the words license or copyright in a header comment
+func containsLicenseHeader(content string) bool {
+	header := strings.ToLower(extractHeader(content))
 	containsCopyright := strings.Contains(header, "copyright")
 	containsLicense := strings.Contains(header, "license")
 	return containsCopyright || containsLicense
 }
 
-// Extract returns the first block comment of the content (if any). Empty string otherwise.
-func Extract(content string) (header string) {
+// extractHeader returns the first block comment of the content (if any). Empty string otherwise.
+func extractHeader(content string) (header string) {
 	for _, line := range strings.Split(content, "\n") {
 		if strings.Contains(line, "*/") {
 			header += line
@@ -47,21 +47,21 @@ func Extract(content string) (header string) {
 	return ""
 }
 
-// Remove removes the header from the content as well as potential empty lines between the header and the body
-func Remove(content string) string {
-	header := Extract(content)
+// removeHeader removes the header from the content as well as potential empty lines between the header and the body
+func removeHeader(content string) string {
+	header := extractHeader(content)
 	body := strings.ReplaceAll(content, header, "")
 	return strings.TrimLeft(body, "\n")
 }
 
-// Insert inserts the provided header at the beginning of the content separated by one empty line
-func Insert(content, header string) string {
+// insertHeader inserts the provided header at the beginning of the content separated by one empty line
+func insertHeader(content, header string) string {
 	return strings.TrimSpace(header) + "\n\n" + strings.TrimLeft(content, "\n")
 }
 
-// Replace removes the current header and inserts the provided one
-func Replace(content, header string) (res string) {
-	res = Remove(content)
-	res = Insert(res, header)
+// replaceHeader removes the current header and inserts the provided one
+func replaceHeader(content, header string) (res string) {
+	res = removeHeader(content)
+	res = insertHeader(res, header)
 	return res
 }

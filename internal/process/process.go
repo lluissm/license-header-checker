@@ -26,11 +26,8 @@ package process
 import (
 	"os"
 	"path/filepath"
-	"reflect"
 	"strings"
 	"time"
-
-	"github.com/lsm-dev/license-header-checker/internal/header"
 )
 
 type (
@@ -75,13 +72,19 @@ const (
 	OperationError
 )
 
-// Files processes all files in the path that match the options
-func Files(options *Options) (*Stats, error) {
-	var handler = new(handler)
-	return filesInternal(options, handler)
+type fileHandler interface {
+	ReplaceFileContent(filePath string, content string) error
+	Walk(string, filepath.WalkFunc) error
+	ReadFile(string) ([]byte, error)
 }
 
-func filesInternal(options *Options, handler fileHandler) (*Stats, error) {
+// Files processes all files in the path that match the options
+func Files(options *Options) (*Stats, error) {
+	var handler = new(ioHandler)
+	return processFiles(options, handler)
+}
+
+func processFiles(options *Options, handler fileHandler) (*Stats, error) {
 
 	data, err := handler.ReadFile(options.LicensePath)
 	if err != nil {
@@ -155,9 +158,9 @@ func File(filePath string, fileContent string, license string, options *Options,
 		return LicenseOk
 	}
 
-	if header.ContainsLicense(fileContent) {
+	if containsLicenseHeader(fileContent) {
 		if options.Replace {
-			newContent := header.Replace(fileContent, license)
+			newContent := replaceHeader(fileContent, license)
 			if err := handler.ReplaceFileContent(filePath, newContent); err != nil {
 				return OperationError
 			}
@@ -167,44 +170,11 @@ func File(filePath string, fileContent string, license string, options *Options,
 	}
 
 	if options.Add {
-		newContent := header.Insert(fileContent, license)
+		newContent := insertHeader(fileContent, license)
 		if err := handler.ReplaceFileContent(filePath, newContent); err != nil {
 			return OperationError
 		}
 		return LicenseAdded
 	}
 	return SkippedAdd
-}
-
-// shouldIgnore returns true if the path matches any of the paths to ignore
-func shouldIgnorePath(path string, ignorePaths []string) bool {
-	pathSegments := strings.Split(path, string(os.PathSeparator))
-	for _, ignorePath := range ignorePaths {
-		ignorePathSegments := strings.Split(ignorePath, string(os.PathSeparator))
-		size := len(ignorePathSegments)
-		lastSegment := len(pathSegments) - size
-		for i := 0; i <= lastSegment; i++ {
-			if reflect.DeepEqual(pathSegments[i:i+size], ignorePathSegments) {
-				return true
-			}
-		}
-	}
-	return false
-}
-
-// shouldIgnoreExtension returns false only if the file's extension is one of the provided ones
-func shouldIgnoreExtension(path string, extensions []string) bool {
-	fileExtension := filepath.Ext(path)
-	for _, ext := range extensions {
-		if fileExtension == ext {
-			return false
-		}
-	}
-	return true
-}
-
-type fileHandler interface {
-	ReplaceFileContent(filePath string, content string) error
-	Walk(string, filepath.WalkFunc) error
-	ReadFile(string) ([]byte, error)
 }
