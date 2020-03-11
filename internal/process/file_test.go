@@ -24,26 +24,11 @@ SOFTWARE.
 package process
 
 import (
-	"errors"
 	"testing"
 
 	"github.com/lsm-dev/license-header-checker/internal/testdata"
 	"github.com/stretchr/testify/assert"
 )
-
-// FakeHandlerSuccess will NOT return an error when addLicense or replaceLicense are called
-type FakeHandlerSuccess struct{}
-
-func (s *FakeHandlerSuccess) replaceFileContent(filePath string, fileContent string) error {
-	return nil
-}
-
-// FakeHandlerError will return an error when addLicense or replaceLicense are called
-type FakeHandlerError struct{}
-
-func (s *FakeHandlerError) replaceFileContent(filePath string, fileContent string) error {
-	return errors.New("error")
-}
 
 func options() *Options {
 	return &Options{
@@ -57,8 +42,8 @@ func options() *Options {
 
 func TestLicenseOk(t *testing.T) {
 	filePath := "main.cpp"
-	license := testdata.FakeTargetLicenseHeader()
-	fileContent := testdata.FakeFileWithTargetLicenseHeader()
+	license := testdata.FakeTargetLicenseHeader
+	fileContent := testdata.FakeFileWithTargetLicenseHeader
 	options := options()
 	handler := new(FakeHandlerSuccess)
 
@@ -68,8 +53,8 @@ func TestLicenseOk(t *testing.T) {
 
 func TestAddLicense(t *testing.T) {
 	filePath := "main.cpp"
-	license := testdata.FakeTargetLicenseHeader()
-	fileContent := testdata.FakeFileWithoutLicense()
+	license := testdata.FakeTargetLicenseHeader
+	fileContent := testdata.FakeFileWithoutLicense
 	options := options()
 	handler := new(FakeHandlerSuccess)
 	handlerError := new(FakeHandlerError)
@@ -89,8 +74,8 @@ func TestAddLicense(t *testing.T) {
 
 func TestReplaceLicense(t *testing.T) {
 	filePath := "main.cpp"
-	license := testdata.FakeTargetLicenseHeader()
-	fileContent := testdata.FakeFileWithDifferentLicenseHeader()
+	license := testdata.FakeTargetLicenseHeader
+	fileContent := testdata.FakeFileWithDifferentLicenseHeader
 	options := options()
 	handler := new(FakeHandlerSuccess)
 	handlerError := new(FakeHandlerError)

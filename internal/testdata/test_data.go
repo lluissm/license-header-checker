@@ -24,8 +24,7 @@ SOFTWARE.
 package testdata
 
 // FakeFileWithoutLicense is a fake file that does not have any license
-func FakeFileWithoutLicense() string {
-	return `const http = require('http');
+const FakeFileWithoutLicense = `const http = require('http');
 
 const hostname = '127.0.0.1';
 const port = 3000;
@@ -36,11 +35,9 @@ res.setHeader('Content-Type', 'text/plain');
 res.end('Hello World');
 });
 `
-}
 
 // FakeTargetLicenseHeader is the target license
-func FakeTargetLicenseHeader() string {
-	return `/*
+const FakeTargetLicenseHeader = `/*
 * This file is part of the XXX distribution (https://github.com/xxxx or http://xxx.github.io).
 * Copyright (c) 2020 The Autor.
 *
@@ -57,11 +54,9 @@ func FakeTargetLicenseHeader() string {
 * along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 `
-}
 
 // FakeFileWithTargetLicenseHeader is a fake file that has the target license
-func FakeFileWithTargetLicenseHeader() string {
-	return `/*
+const FakeFileWithTargetLicenseHeader = `/*
 * This file is part of the XXX distribution (https://github.com/xxxx or http://xxx.github.io).
 * Copyright (c) 2020 The Autor.
 *
@@ -89,11 +84,9 @@ res.setHeader('Content-Type', 'text/plain');
 res.end('Hello World');
 });
 `
-}
 
 // FakeFileWithDifferentLicenseHeader is a fake file with a license that is not the target one
-func FakeFileWithDifferentLicenseHeader() string {
-	return `/*
+const FakeFileWithDifferentLicenseHeader = `/*
 * MIT License
 *
 * Copyright (c) 2020 The Author
@@ -128,4 +121,3 @@ res.setHeader('Content-Type', 'text/plain');
 res.end('Hello World');
 });
 `
-}

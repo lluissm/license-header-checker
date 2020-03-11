@@ -29,14 +29,6 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestShouldIgnoreExtension(t *testing.T) {
-	extensions := []string{".js", ".md"}
-	assert.False(t, shouldIgnoreExtension("file.js", extensions))
-	assert.False(t, shouldIgnoreExtension("readme.md", extensions))
-	assert.True(t, shouldIgnoreExtension("index.html", extensions))
-	assert.True(t, shouldIgnoreExtension("styles.css", extensions))
-}
-
 func TestFileShouldIgnoreFolder(t *testing.T) {
 	assert.True(t, shouldIgnorePath("node_modules/index.js", []string{"node_modules"}))
 	assert.True(t, shouldIgnorePath("src/test/fmt-test.cpp", []string{"test"}))

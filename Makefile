@@ -1,6 +1,6 @@
 .PHONY: all clean build test test-e2e install cross-build cross-pack
 
-all: build test
+all: build test-e2e test
 
 BIN_PATH = bin
 VERSION = $(shell git describe --tags)

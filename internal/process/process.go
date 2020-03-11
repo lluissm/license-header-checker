@@ -24,9 +24,6 @@ SOFTWARE.
 package process
 
 import (
-	"bufio"
-	"fmt"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"reflect"
@@ -80,8 +77,13 @@ const (
 
 // Files processes all files in the path that match the options
 func Files(options *Options) (*Stats, error) {
+	var handler = new(handler)
+	return filesInternal(options, handler)
+}
 
-	data, err := ioutil.ReadFile(options.LicensePath)
+func filesInternal(options *Options, handler fileHandler) (*Stats, error) {
+
+	data, err := handler.ReadFile(options.LicensePath)
 	if err != nil {
 		return nil, err
 	}
@@ -91,7 +93,7 @@ func Files(options *Options) (*Stats, error) {
 	start := time.Now()
 	files := 0
 
-	err = filepath.Walk(options.Path, func(path string, info os.FileInfo, err error) error {
+	err = handler.Walk(options.Path, func(path string, info os.FileInfo, err error) error {
 		if err != nil {
 			files++
 			channel <- &Operation{
@@ -110,7 +112,7 @@ func Files(options *Options) (*Stats, error) {
 			return nil
 		}
 
-		data, err := ioutil.ReadFile(path)
+		data, err := handler.ReadFile(path)
 		if err != nil {
 			files++
 			channel <- &Operation{
@@ -124,8 +126,6 @@ func Files(options *Options) (*Stats, error) {
 
 		files++
 		go func() {
-
-			var handler = new(Handler)
 			action := File(path, fileContent, license, options, handler)
 			channel <- &Operation{
 				Action: action,
@@ -158,7 +158,7 @@ func File(filePath string, fileContent string, license string, options *Options,
 	if header.ContainsLicense(fileContent) {
 		if options.Replace {
 			newContent := header.Replace(fileContent, license)
-			if err := handler.replaceFileContent(filePath, newContent); err != nil {
+			if err := handler.ReplaceFileContent(filePath, newContent); err != nil {
 				return OperationError
 			}
 			return LicenseReplaced
@@ -168,7 +168,7 @@ func File(filePath string, fileContent string, license string, options *Options,
 
 	if options.Add {
 		newContent := header.Insert(fileContent, license)
-		if err := handler.replaceFileContent(filePath, newContent); err != nil {
+		if err := handler.ReplaceFileContent(filePath, newContent); err != nil {
 			return OperationError
 		}
 		return LicenseAdded
@@ -204,33 +204,7 @@ func shouldIgnoreExtension(path string, extensions []string) bool {
 }
 
 type fileHandler interface {
-	replaceFileContent(filePath string, content string) error
-}
-
-// Handler handles adding and replacing license to a file
-type Handler struct{}
-
-func (s *Handler) replaceFileContent(filePath string, content string) error {
-	err := os.Remove(filePath)
-	if err != nil {
-		return fmt.Errorf("failed deleting the file: %w", err)
-	}
-
-	file, err := os.OpenFile(filePath, os.O_CREATE|os.O_WRONLY, 0600)
-	if err != nil {
-		return fmt.Errorf("failed opening file: %w", err)
-	}
-	defer file.Close()
-
-	writer := bufio.NewWriter(file)
-	_, err = writer.WriteString(content)
-	if err != nil {
-		return fmt.Errorf("failed writing to file: %w", err)
-	}
-
-	if err = writer.Flush(); err != nil {
-		return fmt.Errorf("failed writing to file: %w", err)
-	}
-
-	return nil
+	ReplaceFileContent(filePath string, content string) error
+	Walk(string, filepath.WalkFunc) error
+	ReadFile(string) ([]byte, error)
 }
