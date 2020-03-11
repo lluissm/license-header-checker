@@ -72,7 +72,7 @@ const (
 	OperationError
 )
 
-type fileHandler interface {
+type ioHandle interface {
 	ReplaceFileContent(filePath string, content string) error
 	Walk(string, filepath.WalkFunc) error
 	ReadFile(string) ([]byte, error)
@@ -84,9 +84,9 @@ func Files(options *Options) (*Stats, error) {
 	return processFiles(options, handler)
 }
 
-func processFiles(options *Options, handler fileHandler) (*Stats, error) {
+func processFiles(options *Options, ioHandler ioHandle) (*Stats, error) {
 
-	data, err := handler.ReadFile(options.LicensePath)
+	data, err := ioHandler.ReadFile(options.LicensePath)
 	if err != nil {
 		return nil, err
 	}
@@ -96,7 +96,7 @@ func processFiles(options *Options, handler fileHandler) (*Stats, error) {
 	start := time.Now()
 	files := 0
 
-	err = handler.Walk(options.Path, func(path string, info os.FileInfo, err error) error {
+	err = ioHandler.Walk(options.Path, func(path string, info os.FileInfo, err error) error {
 		if err != nil {
 			files++
 			channel <- &Operation{
@@ -115,7 +115,7 @@ func processFiles(options *Options, handler fileHandler) (*Stats, error) {
 			return nil
 		}
 
-		data, err := handler.ReadFile(path)
+		data, err := ioHandler.ReadFile(path)
 		if err != nil {
 			files++
 			channel <- &Operation{
@@ -129,7 +129,7 @@ func processFiles(options *Options, handler fileHandler) (*Stats, error) {
 
 		files++
 		go func() {
-			action := File(path, fileContent, license, options, handler)
+			action := File(path, fileContent, license, options, ioHandler)
 			channel <- &Operation{
 				Action: action,
 				Path:   path,
@@ -152,7 +152,7 @@ func processFiles(options *Options, handler fileHandler) (*Stats, error) {
 }
 
 // File processes one file
-func File(filePath string, fileContent string, license string, options *Options, handler fileHandler) Action {
+func File(filePath string, fileContent string, license string, options *Options, ioHandler ioHandle) Action {
 
 	if strings.Contains(fileContent, strings.TrimSpace(license)) {
 		return LicenseOk
@@ -161,7 +161,7 @@ func File(filePath string, fileContent string, license string, options *Options,
 	if containsLicenseHeader(fileContent) {
 		if options.Replace {
 			newContent := replaceHeader(fileContent, license)
-			if err := handler.ReplaceFileContent(filePath, newContent); err != nil {
+			if err := ioHandler.ReplaceFileContent(filePath, newContent); err != nil {
 				return OperationError
 			}
 			return LicenseReplaced
@@ -171,7 +171,7 @@ func File(filePath string, fileContent string, license string, options *Options,
 
 	if options.Add {
 		newContent := insertHeader(fileContent, license)
-		if err := handler.ReplaceFileContent(filePath, newContent); err != nil {
+		if err := ioHandler.ReplaceFileContent(filePath, newContent); err != nil {
 			return OperationError
 		}
 		return LicenseAdded
