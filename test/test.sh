@@ -16,14 +16,16 @@ remove_ansi_color() {
 	fi
 }
 
-run_test() {
-	PROJECT_DIR=sample-project
-	ARGS="${PROJECT_DIR}/licenses/current-license.txt ${PROJECT_DIR} java js cpp go"
-	rm -rf $PROJECT_DIR
+extract_sample_project() {
 	tar -xzf $PROJECT_DIR.tar.gz
-	echo -e "\n$3"
-	remove_ansi_color "$($1 $2 $ARGS)" res
-	eval "$4=\"${res}\""
+}
+
+delete_sample_project() {
+	rm -rf $PROJECT_DIR
+}
+
+on_success() {
+	echo -e "${GREEN}OK${NC}"
 }
 
 on_failure() {
@@ -31,9 +33,23 @@ on_failure() {
 	echo -e "${RED}Error${NC}"
 }
 
-on_success() {
-	echo -e "${GREEN}OK${NC}"
+run_test() {
+	PROJECT_DIR=sample-project
+	ARGS="${PROJECT_DIR}/licenses/current-license.txt ${PROJECT_DIR} java js cpp go"
+	delete_sample_project
+	extract_sample_project
+	echo -e "\n$3"
+	remove_ansi_color "$($1 $2 $ARGS)" res
+	eval "$4=\"${res}\""
 }
+
+run_test $CMD '-version' 'Testing version...' result
+
+if [[ $result =~ $'version:' ]]; then
+	on_success
+else
+	on_failure
+fi
 
 run_test $CMD '' 'Testing read only...' result
 
@@ -80,6 +96,8 @@ if [[ $result =~ $'license_ok: 1 files' && \
 else
 	on_failure
 fi
+
+delete_sample_project
 
 if (($errors > 0)); then
 	exit 1

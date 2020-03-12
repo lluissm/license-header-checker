@@ -21,46 +21,28 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
-package file
+package process
 
 import (
 	"bufio"
 	"fmt"
+	"io/ioutil"
 	"os"
 	"path/filepath"
-	"reflect"
-	"strings"
 )
 
-// HasExtension returns true if the file's extension is one of the provided ones
-func HasExtension(path string, extensions []string) bool {
-	fileExtension := filepath.Ext(path)
-	for _, ext := range extensions {
-		if fileExtension == ext {
-			return true
-		}
-	}
-	return false
+// ioHandler handles all necessary io operations
+type ioHandler struct{}
+
+func (s *ioHandler) ReadFile(filename string) ([]byte, error) {
+	return ioutil.ReadFile(filename)
 }
 
-// ShouldIgnore returns true if the path matches any of the paths to ignore
-func ShouldIgnore(path string, ignorePaths []string) bool {
-	pathSegments := strings.Split(path, string(os.PathSeparator))
-	for _, ignorePath := range ignorePaths {
-		ignorePathSegments := strings.Split(ignorePath, string(os.PathSeparator))
-		size := len(ignorePathSegments)
-		lastSegment := len(pathSegments) - size
-		for i := 0; i <= lastSegment; i++ {
-			if reflect.DeepEqual(pathSegments[i:i+size], ignorePathSegments) {
-				return true
-			}
-		}
-	}
-	return false
+func (s *ioHandler) Walk(path string, walkFn filepath.WalkFunc) error {
+	return filepath.Walk(path, walkFn)
 }
 
-// Replace remove the file and create a new one with the specified content
-func Replace(filePath string, content string) error {
+func (s *ioHandler) ReplaceFileContent(filePath string, content string) error {
 	err := os.Remove(filePath)
 	if err != nil {
 		return fmt.Errorf("failed deleting the file: %w", err)

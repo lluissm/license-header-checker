@@ -24,15 +24,10 @@ SOFTWARE.
 package process
 
 import (
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"strings"
 	"time"
-
-	"github.com/lsm-dev/license-header-checker/internal/config"
-	"github.com/lsm-dev/license-header-checker/internal/file"
-	"github.com/lsm-dev/license-header-checker/internal/header"
 )
 
 type (
@@ -50,6 +45,16 @@ type (
 		Operations []*Operation
 		ElapsedMs  int64
 	}
+
+	// Options to be followed during processing
+	Options struct {
+		Add         bool
+		Replace     bool
+		Path        string
+		LicensePath string
+		Extensions  []string
+		IgnorePaths []string
+	}
 )
 
 const (
@@ -57,59 +62,106 @@ const (
 	SkippedAdd Action = iota
 	// SkippedReplace means that the file had a different license but it was not replaced with the target one. Missing -r flag
 	SkippedReplace
-	// LicenseOk means that the license was OK
+	// LicenseOk means that the license was OK so the file was not changed
 	LicenseOk
 	// LicenseAdded means that the target license was added to the file
 	LicenseAdded
-	// LicenseReplaced means that the license was replaced by the target one
+	// LicenseReplaced means that the file's license was replaced by the target one
 	LicenseReplaced
 	// OperationError means there was an error with one of the files
 	OperationError
 )
 
-// getLicense reads the license from the provided path
-func getLicense(path string) (string, error) {
-	data, err := ioutil.ReadFile(path)
-	if err != nil {
-		return "", err
-	}
-	return string(data), nil
+type ioHandle interface {
+	ReadFile(string) ([]byte, error)
+	Walk(string, filepath.WalkFunc) error
+	ReplaceFileContent(filePath string, content string) error
 }
 
-// Files processes all files matching with options
-func Files(options *config.Options) (*Stats, error) {
+// File processes one file
+func File(filePath string, fileContent string, license string, options *Options, ioHandler ioHandle) Action {
 
-	license, err := getLicense(options.LicensePath)
+	if strings.Contains(fileContent, strings.TrimSpace(license)) {
+		return LicenseOk
+	}
+
+	if containsLicenseHeader(fileContent) {
+		if options.Replace {
+			newContent := replaceHeader(fileContent, license)
+			if err := ioHandler.ReplaceFileContent(filePath, newContent); err != nil {
+				return OperationError
+			}
+			return LicenseReplaced
+		}
+		return SkippedReplace
+	}
+
+	if options.Add {
+		newContent := insertHeader(fileContent, license)
+		if err := ioHandler.ReplaceFileContent(filePath, newContent); err != nil {
+			return OperationError
+		}
+		return LicenseAdded
+	}
+	return SkippedAdd
+}
+
+// Files processes all files in the path that match the options
+func Files(options *Options) (*Stats, error) {
+	var handler = new(ioHandler)
+	return processFiles(options, handler)
+}
+
+func processFiles(options *Options, ioHandler ioHandle) (*Stats, error) {
+
+	data, err := ioHandler.ReadFile(options.LicensePath)
 	if err != nil {
 		return nil, err
 	}
+	license := string(data)
 
-	channel := make(chan *Operation)
+	channel := make(chan *Operation, 15)
 	start := time.Now()
 	files := 0
 
-	err = filepath.Walk(options.Path, func(path string, info os.FileInfo, err error) error {
+	err = ioHandler.Walk(options.Path, func(path string, info os.FileInfo, err error) error {
 		if err != nil {
 			files++
-			channel <- &Operation{
-				Action: OperationError,
-				Path:   path,
-			}
+			go func() {
+				channel <- &Operation{
+					Action: OperationError,
+					Path:   path,
+				}
+			}()
 			return nil
 		}
 		if info.IsDir() {
 			return nil
 		}
-		if file.ShouldIgnore(path, options.IgnorePaths) {
+		if shouldIgnorePath(path, options.IgnorePaths) {
 			return nil
 		}
-		if !file.HasExtension(path, options.Extensions) {
+		if shouldIgnoreExtension(path, options.Extensions) {
 			return nil
 		}
 
+		data, err := ioHandler.ReadFile(path)
+		if err != nil {
+			files++
+			go func() {
+				channel <- &Operation{
+					Action: OperationError,
+					Path:   path,
+				}
+			}()
+			return nil
+		}
+
+		fileContent := string(data)
+
 		files++
 		go func() {
-			action := File(path, license, options)
+			action := File(path, fileContent, license, options, ioHandler)
 			channel <- &Operation{
 				Action: action,
 				Path:   path,
@@ -129,47 +181,4 @@ func Files(options *config.Options) (*Stats, error) {
 		Operations: operations,
 		ElapsedMs:  elapsedTime.Milliseconds(),
 	}, err
-}
-
-// File processes the file
-func File(filePath string, license string, options *config.Options) Action {
-
-	data, err := ioutil.ReadFile(filePath)
-	if err != nil {
-		return OperationError
-	}
-
-	fileContent := string(data)
-
-	if strings.Contains(fileContent, strings.TrimSpace(license)) {
-		return LicenseOk
-	}
-
-	if header.ContainsLicense(fileContent) {
-		if options.Replace {
-			if err := replaceLicense(filePath, fileContent, license); err != nil {
-				return OperationError
-			}
-			return LicenseReplaced
-		}
-		return SkippedReplace
-	}
-
-	if options.Add {
-		if err := addLicense(filePath, fileContent, license); err != nil {
-			return OperationError
-		}
-		return LicenseAdded
-	}
-	return SkippedAdd
-}
-
-func addLicense(filePath string, fileContent string, license string) error {
-	newFileContent := header.Insert(fileContent, license)
-	return file.Replace(filePath, newFileContent)
-}
-
-func replaceLicense(filePath string, fileContent string, license string) error {
-	newFileContent := header.Replace(fileContent, license)
-	return file.Replace(filePath, newFileContent)
 }

@@ -1,12 +1,12 @@
 .PHONY: all clean build test test-e2e install cross-build cross-pack
 
-all: build test
+all: build test-e2e test
 
 BIN_PATH = bin
 VERSION = $(shell git describe --tags)
 CMD = license-header-checker
 BUILD_PATH = ./cmd/$(CMD)
-LD_FLAGS = -ldflags="-X 'github.com/lsm-dev/license-header-checker/internal/config.version=${VERSION}'"
+LD_FLAGS = -ldflags="-X 'main.version=${VERSION}'"
 
 clean:
 	@echo "=> Cleaning project"
@@ -21,6 +21,11 @@ build:
 test:
 	@echo "=> Running unit tests"
 	@go test -cover ./...
+
+test-cover:
+	@echo "=> Running unit tests and checking coverage"
+	@go test -coverprofile=coverage.out ./...
+	@go tool cover -html=coverage.out
 
 test-e2e: build
 	@echo "=> Executing end to end tests"

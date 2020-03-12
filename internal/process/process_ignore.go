@@ -21,30 +21,38 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
-package main
+package process
 
 import (
-	"fmt"
-	"log"
 	"os"
-
-	"github.com/lsm-dev/license-header-checker/internal/process"
+	"path/filepath"
+	"reflect"
+	"strings"
 )
 
-var version string = "development"
+// shouldIgnoreExtension returns false only if the file's extension is one of the provided ones
+func shouldIgnoreExtension(path string, extensions []string) bool {
+	fileExtension := filepath.Ext(path)
+	for _, ext := range extensions {
+		if fileExtension == ext {
+			return false
+		}
+	}
+	return true
+}
 
-func main() {
-	options, err := parseOptions(os.Args)
-	if err != nil {
-		log.Fatal(err.Error())
+// shouldIgnore returns true if the path matches any of the paths to ignore
+func shouldIgnorePath(path string, ignorePaths []string) bool {
+	pathSegments := strings.Split(path, string(os.PathSeparator))
+	for _, ignorePath := range ignorePaths {
+		ignorePathSegments := strings.Split(ignorePath, string(os.PathSeparator))
+		size := len(ignorePathSegments)
+		lastSegment := len(pathSegments) - size
+		for i := 0; i <= lastSegment; i++ {
+			if reflect.DeepEqual(pathSegments[i:i+size], ignorePathSegments) {
+				return true
+			}
+		}
 	}
-	if options.ShowVersion {
-		fmt.Printf("version: %s\n", version)
-		os.Exit(0)
-	}
-	stats, err := process.Files(options.Process)
-	if err != nil {
-		log.Fatal(err.Error())
-	}
-	printStats(options.Verbose, stats, options.Process)
+	return false
 }
