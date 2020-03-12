@@ -21,7 +21,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
-package main
+package options
 
 import (
 	"errors"
@@ -29,7 +29,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/lsm-dev/license-header-checker/internal/process"
+	"github.com/lsm-dev/license-header-checker/pkg/process"
 )
 
 // Options are the process.Options parsed from command line flags/args
@@ -39,8 +39,8 @@ type Options struct {
 	Process     *process.Options
 }
 
-// parseOptions returns the parsed Options from command line flags/args
-func parseOptions(osArgs []string) (*Options, error) {
+// Parse returns the parsed Options from command line flags/args
+func Parse(osArgs []string) (*Options, error) {
 
 	flagSet := flag.NewFlagSet("lhc", flag.ExitOnError)
 	flagSet.Usage = func() {

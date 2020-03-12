@@ -190,7 +190,7 @@ func TestFilesSuccess(t *testing.T) {
 		"file_old_license.h",    // extension to ignore
 		"ignore/file.cpp"}       // path to ignore
 
-	stats, err := processFiles(options, handler)
+	stats, err := Files(options, handler)
 	assert.Nil(t, err)
 	assert.True(t, len(stats.Operations) == 3)
 }
@@ -208,7 +208,7 @@ func TestFilesErrorReadingLicense(t *testing.T) {
 
 	handler.pathsToWalk = []string{"file_no_license.cpp"}
 
-	_, err := processFiles(options, handler)
+	_, err := Files(options, handler)
 	assert.NotNil(t, err)
 }
 
@@ -226,7 +226,7 @@ func TestFilesDoesNotCountDir(t *testing.T) {
 	handler.pathsToWalk = []string{"file_no_license.cpp"}
 	handler.isDir = true
 
-	stats, err := processFiles(options, handler)
+	stats, err := Files(options, handler)
 	assert.Nil(t, err)
 	assert.True(t, len(stats.Operations) == 0)
 
@@ -246,7 +246,7 @@ func TestFilesErrorReadingFile(t *testing.T) {
 
 	handler.pathsToWalk = []string{"file_does_not_exist.cpp"}
 
-	stats, err := processFiles(options, handler)
+	stats, err := Files(options, handler)
 	assert.Nil(t, err)
 	assert.True(t, len(stats.Operations) == 1)
 	assert.True(t, stats.Operations[0].Action == OperationError)
@@ -266,7 +266,7 @@ func TestFilesErrorSentByWalk(t *testing.T) {
 	handler.pathsToWalk = []string{"file_no_license.cpp"}
 	handler.errorWalkingPath = true
 
-	stats, err := processFiles(options, handler)
+	stats, err := Files(options, handler)
 	assert.Nil(t, err)
 	assert.True(t, len(stats.Operations) == 1)
 	assert.True(t, stats.Operations[0].Action == OperationError)

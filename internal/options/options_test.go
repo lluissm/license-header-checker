@@ -21,7 +21,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
-package main
+package options
 
 import (
 	"testing"
@@ -31,95 +31,95 @@ import (
 
 func TestErrorIfMissingArgs(t *testing.T) {
 	args := []string{"license-header-checker"}
-	_, err := parseOptions(args)
+	_, err := Parse(args)
 	assert.NotNil(t, err)
 
 	args = []string{"license-header-checker", "license-path"}
-	_, err = parseOptions(args)
+	_, err = Parse(args)
 	assert.NotNil(t, err)
 
 	args = []string{"license-header-checker", "license-path", "source-path"}
-	_, err = parseOptions(args)
+	_, err = Parse(args)
 	assert.NotNil(t, err)
 
 	args = []string{"license-header-checker", "license-path", "source-path", "js"}
-	_, err = parseOptions(args)
+	_, err = Parse(args)
 	assert.Nil(t, err)
 }
 
 func TestVersion(t *testing.T) {
 	args := []string{"license-header-checker", "-version", "license-path", "source-path", "js"}
-	options, _ := parseOptions(args)
+	options, _ := Parse(args)
 	assert.True(t, options.ShowVersion)
 
 	args = []string{"license-header-checker", "license-path", "source-path", "js"}
-	options, _ = parseOptions(args)
+	options, _ = Parse(args)
 	assert.False(t, options.ShowVersion)
 }
 
 func TestAdd(t *testing.T) {
 	args := []string{"license-header-checker", "-a", "license-path", "source-path", "js"}
-	options, _ := parseOptions(args)
+	options, _ := Parse(args)
 	assert.True(t, options.Process.Add)
 
 	args = []string{"license-header-checker", "license-path", "source-path", "js"}
-	options, _ = parseOptions(args)
+	options, _ = Parse(args)
 	assert.False(t, options.Process.Add)
 }
 
 func TestReplace(t *testing.T) {
 	args := []string{"license-header-checker", "-r", "license-path", "source-path", "js"}
-	options, _ := parseOptions(args)
+	options, _ := Parse(args)
 	assert.True(t, options.Process.Replace)
 
 	args = []string{"license-header-checker", "license-path", "source-path", "js"}
-	options, _ = parseOptions(args)
+	options, _ = Parse(args)
 	assert.False(t, options.Process.Replace)
 }
 
 func TestVerbose(t *testing.T) {
 	args := []string{"license-header-checker", "-v", "license-path", "source-path", "js"}
-	options, _ := parseOptions(args)
+	options, _ := Parse(args)
 	assert.True(t, options.Verbose)
 
 	args = []string{"license-header-checker", "license-path", "source-path", "js"}
-	options, _ = parseOptions(args)
+	options, _ = Parse(args)
 	assert.False(t, options.Verbose)
 }
 
 func TestPath(t *testing.T) {
 	args := []string{"license-header-checker", "license-path", "source-path", "js", "ts"}
-	options, _ := parseOptions(args)
+	options, _ := Parse(args)
 	assert.True(t, options.Process.Path == "source-path")
 }
 
 func TestLicensePath(t *testing.T) {
 	args := []string{"license-header-checker", "license-path", "source-path", "js", "ts"}
-	options, _ := parseOptions(args)
+	options, _ := Parse(args)
 	assert.True(t, options.Process.LicensePath == "license-path")
 }
 
 func TestExtensions(t *testing.T) {
 	args := []string{"license-header-checker", "license-path", "source-path", "js", "ts"}
-	options, _ := parseOptions(args)
+	options, _ := Parse(args)
 	assert.True(t, len(options.Process.Extensions) == 2)
 	assert.True(t, options.Process.Extensions[0] == ".js")
 	assert.True(t, options.Process.Extensions[1] == ".ts")
 
 	args = []string{"license-header-checker", "license-path", "source-path", "cpp"}
-	options, _ = parseOptions(args)
+	options, _ = Parse(args)
 	assert.True(t, len(options.Process.Extensions) == 1)
 	assert.True(t, options.Process.Extensions[0] == ".cpp")
 }
 
 func TestIgnorePaths(t *testing.T) {
 	args := []string{"license-header-checker", "-i", "node_modules,client/assets", "license-path", "source-path", "js"}
-	options, _ := parseOptions(args)
+	options, _ := Parse(args)
 	assert.True(t, len(options.Process.IgnorePaths) == 2)
 	assert.True(t, options.Process.IgnorePaths[0] == "node_modules")
 	assert.True(t, options.Process.IgnorePaths[1] == "client/assets")
 
 	args = []string{"license-header-checker", "license-path", "source-path", "js"}
-	options, _ = parseOptions(args)
+	options, _ = Parse(args)
 	assert.True(t, len(options.Process.IgnorePaths) == 0)
 }

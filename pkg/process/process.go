@@ -106,13 +106,7 @@ func File(filePath string, fileContent string, license string, options *Options,
 	return SkippedAdd
 }
 
-// Files processes all files in the path that match the options
-func Files(options *Options) (*Stats, error) {
-	var handler = new(ioHandler)
-	return processFiles(options, handler)
-}
-
-func processFiles(options *Options, ioHandler ioHandle) (*Stats, error) {
+func Files(options *Options, ioHandler ioHandle) (*Stats, error) {
 
 	data, err := ioHandler.ReadFile(options.LicensePath)
 	if err != nil {
