@@ -120,7 +120,7 @@ func processFiles(options *Options, ioHandler ioHandle) (*Stats, error) {
 	}
 	license := string(data)
 
-	channel := make(chan *Operation)
+	channel := make(chan *Operation, 15)
 	start := time.Now()
 	files := 0
 
