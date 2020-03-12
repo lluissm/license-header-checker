@@ -33,33 +33,34 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-// fakeFileInfo implements os.FileInfo
-type fakeFileInfo struct {
+// fileInfoStub implements os.FileInfo
+type fileInfoStub struct {
 	isDir bool
 }
 
-func (f *fakeFileInfo) Name() string       { return "name" }
-func (f *fakeFileInfo) Size() int64        { return int64(0) }
-func (f *fakeFileInfo) Mode() os.FileMode  { return 0 }
-func (f *fakeFileInfo) ModTime() time.Time { return time.Now() }
-func (f *fakeFileInfo) IsDir() bool        { return f.isDir }
-func (f *fakeFileInfo) Sys() interface{}   { return "sys" }
+func (f *fileInfoStub) Name() string       { return "name" }
+func (f *fileInfoStub) Size() int64        { return int64(0) }
+func (f *fileInfoStub) Mode() os.FileMode  { return 0 }
+func (f *fileInfoStub) ModTime() time.Time { return time.Now() }
+func (f *fileInfoStub) IsDir() bool        { return f.isDir }
+func (f *fileInfoStub) Sys() interface{}   { return "sys" }
 
-type fakeIoHandler struct {
+type ioHandlerStub struct {
 	pathsToWalk               []string
+	isDir                     bool
 	errorReadingFile          bool
 	errorReplacingFileContent bool
 	errorWalkingPath          bool
 }
 
-func (s *fakeIoHandler) ReplaceFileContent(filePath string, fileContent string) error {
+func (s *ioHandlerStub) ReplaceFileContent(filePath string, fileContent string) error {
 	if s.errorReplacingFileContent {
 		return errors.New("error")
 	}
 	return nil
 }
 
-func (s *fakeIoHandler) ReadFile(filename string) ([]byte, error) {
+func (s *ioHandlerStub) ReadFile(filename string) ([]byte, error) {
 	switch filename {
 	case "license.txt":
 		return []byte(FakeTargetLicenseHeader), nil
@@ -69,18 +70,20 @@ func (s *fakeIoHandler) ReadFile(filename string) ([]byte, error) {
 		return []byte(FakeFileWithTargetLicenseHeader), nil
 	case "file_old_license.cpp":
 		return []byte(FakeFileWithDifferentLicenseHeader), nil
+	default:
+		return nil, errors.New("file does not exist")
 	}
-	return nil, errors.New("file does not exist")
 }
 
-func (s *fakeIoHandler) Walk(path string, walkFn filepath.WalkFunc) error {
-	fileInfo := new(fakeFileInfo)
-	fileInfo.isDir = false
+func (s *ioHandlerStub) Walk(path string, walkFn filepath.WalkFunc) error {
+	fileInfo := new(fileInfoStub)
+	fileInfo.isDir = s.isDir
 	for _, path := range s.pathsToWalk {
-		walkFn(path, fileInfo, nil)
-	}
-	if s.errorWalkingPath {
-		walkFn(path, fileInfo, errors.New("error"))
+		if s.errorWalkingPath {
+			walkFn(path, fileInfo, errors.New("error"))
+		} else {
+			walkFn(path, fileInfo, nil)
+		}
 	}
 	return nil
 }
@@ -100,7 +103,7 @@ func TestFileLicenseOk(t *testing.T) {
 	filePath := "main.cpp"
 	license := FakeTargetLicenseHeader
 	fileContent := FakeFileWithTargetLicenseHeader
-	handler := new(fakeIoHandler)
+	handler := new(ioHandlerStub)
 	options := &Options{
 		Add:         true,
 		Replace:     true,
@@ -118,7 +121,7 @@ func TestFileAddLicense(t *testing.T) {
 	filePath := "main.cpp"
 	license := FakeTargetLicenseHeader
 	fileContent := FakeFileWithoutLicense
-	handler := new(fakeIoHandler)
+	handler := new(ioHandlerStub)
 	options := &Options{
 		Add:         true,
 		Replace:     true,
@@ -146,7 +149,7 @@ func TestFileReplaceLicense(t *testing.T) {
 	filePath := "main.cpp"
 	license := FakeTargetLicenseHeader
 	fileContent := FakeFileWithDifferentLicenseHeader
-	handler := new(fakeIoHandler)
+	handler := new(ioHandlerStub)
 	options := &Options{
 		Add:         true,
 		Replace:     true,
@@ -171,7 +174,7 @@ func TestFileReplaceLicense(t *testing.T) {
 }
 
 func TestFilesSuccess(t *testing.T) {
-	handler := new(fakeIoHandler)
+	handler := new(ioHandlerStub)
 	options := &Options{
 		Add:         true,
 		Replace:     true,
@@ -193,7 +196,7 @@ func TestFilesSuccess(t *testing.T) {
 }
 
 func TestFilesErrorReadingLicense(t *testing.T) {
-	handler := new(fakeIoHandler)
+	handler := new(ioHandlerStub)
 	options := &Options{
 		Add:         true,
 		Replace:     true,
@@ -209,9 +212,29 @@ func TestFilesErrorReadingLicense(t *testing.T) {
 	assert.NotNil(t, err)
 }
 
-/*
+func TestFilesDoesNotCountDir(t *testing.T) {
+	handler := new(ioHandlerStub)
+	options := &Options{
+		Add:         true,
+		Replace:     true,
+		Path:        "source",
+		LicensePath: "license.txt",
+		Extensions:  []string{".cpp"},
+		IgnorePaths: []string{"ignore"},
+	}
+
+	handler.pathsToWalk = []string{"file_no_license.cpp"}
+	handler.isDir = true
+
+	stats, err := processFiles(options, handler)
+	assert.Nil(t, err)
+	assert.True(t, len(stats.Operations) == 0)
+
+}
+
 func TestFilesErrorReadingFile(t *testing.T) {
-	handler := new(fakeIoHandler)
+
+	handler := new(ioHandlerStub)
 	options := &Options{
 		Add:         true,
 		Replace:     true,
@@ -226,12 +249,11 @@ func TestFilesErrorReadingFile(t *testing.T) {
 	stats, err := processFiles(options, handler)
 	assert.Nil(t, err)
 	assert.True(t, len(stats.Operations) == 1)
-	assert.True(t, stats.Operations[0] == OperationError)
+	assert.True(t, stats.Operations[0].Action == OperationError)
 }
-*/
-/*
+
 func TestFilesErrorSentByWalk(t *testing.T) {
-	handler := new(FakeIoHandlerSuccess)
+	handler := new(ioHandlerStub)
 	options := &Options{
 		Add:         true,
 		Replace:     true,
@@ -241,8 +263,11 @@ func TestFilesErrorSentByWalk(t *testing.T) {
 		IgnorePaths: []string{"ignore"},
 	}
 
+	handler.pathsToWalk = []string{"file_no_license.cpp"}
 	handler.errorWalkingPath = true
-	_, err := processFiles(options, handler)
-	assert.NotNil(t, err)
+
+	stats, err := processFiles(options, handler)
+	assert.Nil(t, err)
+	assert.True(t, len(stats.Operations) == 1)
+	assert.True(t, stats.Operations[0].Action == OperationError)
 }
-*/

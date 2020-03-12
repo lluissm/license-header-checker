@@ -62,93 +62,20 @@ const (
 	SkippedAdd Action = iota
 	// SkippedReplace means that the file had a different license but it was not replaced with the target one. Missing -r flag
 	SkippedReplace
-	// LicenseOk means that the license was OK
+	// LicenseOk means that the license was OK so the file was not changed
 	LicenseOk
 	// LicenseAdded means that the target license was added to the file
 	LicenseAdded
-	// LicenseReplaced means that the license was replaced by the target one
+	// LicenseReplaced means that the file's license was replaced by the target one
 	LicenseReplaced
 	// OperationError means there was an error with one of the files
 	OperationError
 )
 
 type ioHandle interface {
-	ReplaceFileContent(filePath string, content string) error
-	Walk(string, filepath.WalkFunc) error
 	ReadFile(string) ([]byte, error)
-}
-
-// Files processes all files in the path that match the options
-func Files(options *Options) (*Stats, error) {
-	var handler = new(ioHandler)
-	return processFiles(options, handler)
-}
-
-func processFiles(options *Options, ioHandler ioHandle) (*Stats, error) {
-
-	data, err := ioHandler.ReadFile(options.LicensePath)
-	if err != nil {
-		return nil, err
-	}
-	license := string(data)
-
-	channel := make(chan *Operation)
-	start := time.Now()
-	files := 0
-
-	err = ioHandler.Walk(options.Path, func(path string, info os.FileInfo, err error) error {
-		if err != nil {
-			files++
-			channel <- &Operation{
-				Action: OperationError,
-				Path:   path,
-			}
-			return nil
-		}
-		if info.IsDir() {
-			return nil
-		}
-		if shouldIgnorePath(path, options.IgnorePaths) {
-			return nil
-		}
-		if shouldIgnoreExtension(path, options.Extensions) {
-			return nil
-		}
-
-		data, err := ioHandler.ReadFile(path)
-		if err != nil {
-			files++
-			channel <- &Operation{
-				Action: OperationError,
-				Path:   path,
-			}
-			return nil
-		}
-
-		fileContent := string(data)
-
-		files++
-		go func() {
-			action := File(path, fileContent, license, options, ioHandler)
-			channel <- &Operation{
-				Action: action,
-				Path:   path,
-			}
-		}()
-
-		return nil
-	})
-
-	operations := []*Operation{}
-	for i := 0; i < files; i++ {
-		operations = append(operations, <-channel)
-	}
-
-	elapsedTime := time.Since(start)
-	return &Stats{
-		Operations: operations,
-		ElapsedMs:  elapsedTime.Milliseconds(),
-	}, err
+	Walk(string, filepath.WalkFunc) error
+	ReplaceFileContent(filePath string, content string) error
 }
 
 // File processes one file
@@ -177,4 +104,81 @@ func File(filePath string, fileContent string, license string, options *Options,
 		return LicenseAdded
 	}
 	return SkippedAdd
+}
+
+// Files processes all files in the path that match the options
+func Files(options *Options) (*Stats, error) {
+	var handler = new(ioHandler)
+	return processFiles(options, handler)
+}
+
+func processFiles(options *Options, ioHandler ioHandle) (*Stats, error) {
+
+	data, err := ioHandler.ReadFile(options.LicensePath)
+	if err != nil {
+		return nil, err
+	}
+	license := string(data)
+
+	channel := make(chan *Operation)
+	start := time.Now()
+	files := 0
+
+	err = ioHandler.Walk(options.Path, func(path string, info os.FileInfo, err error) error {
+		if err != nil {
+			files++
+			go func() {
+				channel <- &Operation{
+					Action: OperationError,
+					Path:   path,
+				}
+			}()
+			return nil
+		}
+		if info.IsDir() {
+			return nil
+		}
+		if shouldIgnorePath(path, options.IgnorePaths) {
+			return nil
+		}
+		if shouldIgnoreExtension(path, options.Extensions) {
+			return nil
+		}
+
+		data, err := ioHandler.ReadFile(path)
+		if err != nil {
+			files++
+			go func() {
+				channel <- &Operation{
+					Action: OperationError,
+					Path:   path,
+				}
+			}()
+			return nil
+		}
+
+		fileContent := string(data)
+
+		files++
+		go func() {
+			action := File(path, fileContent, license, options, ioHandler)
+			channel <- &Operation{
+				Action: action,
+				Path:   path,
+			}
+		}()
+
+		return nil
+	})
+
+	operations := []*Operation{}
+	for i := 0; i < files; i++ {
+		operations = append(operations, <-channel)
+	}
+
+	elapsedTime := time.Since(start)
+	return &Stats{
+		Operations: operations,
+		ElapsedMs:  elapsedTime.Milliseconds(),
+	}, err
 }
