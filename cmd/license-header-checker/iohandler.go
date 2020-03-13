@@ -42,13 +42,13 @@ func (s *ioHandler) Walk(path string, walkFn filepath.WalkFunc) error {
 	return filepath.Walk(path, walkFn)
 }
 
-func (s *ioHandler) ReplaceFileContent(filePath string, content string) error {
-	err := os.Remove(filePath)
+func (s *ioHandler) ReplaceFileContent(path string, content string) error {
+	err := os.Remove(path)
 	if err != nil {
 		return fmt.Errorf("failed deleting the file: %w", err)
 	}
 
-	file, err := os.OpenFile(filePath, os.O_CREATE|os.O_WRONLY, 0600)
+	file, err := os.OpenFile(path, os.O_CREATE|os.O_WRONLY, 0600)
 	if err != nil {
 		return fmt.Errorf("failed opening file: %w", err)
 	}

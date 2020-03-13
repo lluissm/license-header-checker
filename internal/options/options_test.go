@@ -29,7 +29,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestErrorIfMissingArgs(t *testing.T) {
+func TestErrorWhenMissingArgs(t *testing.T) {
 	args := []string{"license-header-checker"}
 	_, err := Parse(args)
 	assert.NotNil(t, err)

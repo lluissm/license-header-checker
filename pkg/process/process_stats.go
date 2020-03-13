@@ -21,31 +21,23 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
-package main
+package process
 
-import (
-	"fmt"
-	"log"
-	"os"
+// Stats is the result of processing multiple files
+type Stats struct {
+	ElapsedMs int64
+	Files     map[Action][]string
+}
 
-	"github.com/lsm-dev/license-header-checker/internal/options"
-	"github.com/lsm-dev/license-header-checker/pkg/process"
-)
+// NewStats creates a Stats struct with initialized Files
+func NewStats() *Stats {
+	stats := new(Stats)
+	stats.Files = make(map[Action][]string)
+	stats.ElapsedMs = 0
+	return stats
+}
 
-var version string = "development"
-
-func main() {
-	options, err := options.Parse(os.Args)
-	if err != nil {
-		log.Fatal(err.Error())
-	}
-	if options.ShowVersion {
-		fmt.Printf("version: %s\n", version)
-		os.Exit(0)
-	}
-	stats, err := process.Files(options.Process, new(ioHandler))
-	if err != nil {
-		log.Fatal(err.Error())
-	}
-	print(options, stats)
+// AddOperation to stats
+func (s *Stats) AddOperation(operation *Operation) {
+	s.Files[operation.Action] = append(s.Files[operation.Action], operation.Path)
 }

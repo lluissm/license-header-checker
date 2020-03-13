@@ -40,12 +40,6 @@ type (
 		Path   string
 	}
 
-	// Stats is the result of processing multiple files
-	Stats struct {
-		Operations []*Operation
-		ElapsedMs  int64
-	}
-
 	// Options to be followed during processing
 	Options struct {
 		Add         bool
@@ -75,20 +69,20 @@ const (
 type ioHandle interface {
 	ReadFile(string) ([]byte, error)
 	Walk(string, filepath.WalkFunc) error
-	ReplaceFileContent(filePath string, content string) error
+	ReplaceFileContent(path string, content string) error
 }
 
 // File processes one file
-func File(filePath string, fileContent string, license string, options *Options, ioHandler ioHandle) Action {
+func File(path string, content string, license string, options *Options, ioHandler ioHandle) Action {
 
-	if strings.Contains(fileContent, strings.TrimSpace(license)) {
+	if strings.Contains(content, strings.TrimSpace(license)) {
 		return LicenseOk
 	}
 
-	if containsLicenseHeader(fileContent) {
+	if containsLicenseHeader(content) {
 		if options.Replace {
-			newContent := replaceHeader(fileContent, license)
-			if err := ioHandler.ReplaceFileContent(filePath, newContent); err != nil {
+			newContent := replaceHeader(content, license)
+			if err := ioHandler.ReplaceFileContent(path, newContent); err != nil {
 				return OperationError
 			}
 			return LicenseReplaced
@@ -97,8 +91,8 @@ func File(filePath string, fileContent string, license string, options *Options,
 	}
 
 	if options.Add {
-		newContent := insertHeader(fileContent, license)
-		if err := ioHandler.ReplaceFileContent(filePath, newContent); err != nil {
+		newContent := insertHeader(content, license)
+		if err := ioHandler.ReplaceFileContent(path, newContent); err != nil {
 			return OperationError
 		}
 		return LicenseAdded
@@ -106,73 +100,76 @@ func File(filePath string, fileContent string, license string, options *Options,
 	return SkippedAdd
 }
 
+// Files processes a group of files as defined in options
 func Files(options *Options, ioHandler ioHandle) (*Stats, error) {
 
 	data, err := ioHandler.ReadFile(options.LicensePath)
 	if err != nil {
 		return nil, err
 	}
-	license := string(data)
 
+	license := string(data)
 	channel := make(chan *Operation, 15)
-	start := time.Now()
+	startTime := time.Now()
+	stats := NewStats()
 	files := 0
 
 	err = ioHandler.Walk(options.Path, func(path string, info os.FileInfo, err error) error {
-		if err != nil {
+		if processFile(channel, options, license, ioHandler, path, info, err) {
 			files++
-			go func() {
-				channel <- &Operation{
-					Action: OperationError,
-					Path:   path,
-				}
-			}()
-			return nil
 		}
-		if info.IsDir() {
-			return nil
-		}
-		if shouldIgnorePath(path, options.IgnorePaths) {
-			return nil
-		}
-		if shouldIgnoreExtension(path, options.Extensions) {
-			return nil
-		}
-
-		data, err := ioHandler.ReadFile(path)
-		if err != nil {
-			files++
-			go func() {
-				channel <- &Operation{
-					Action: OperationError,
-					Path:   path,
-				}
-			}()
-			return nil
-		}
-
-		fileContent := string(data)
-
-		files++
-		go func() {
-			action := File(path, fileContent, license, options, ioHandler)
-			channel <- &Operation{
-				Action: action,
-				Path:   path,
-			}
-		}()
-
 		return nil
 	})
 
-	operations := []*Operation{}
 	for i := 0; i < files; i++ {
-		operations = append(operations, <-channel)
+		stats.AddOperation(<-channel)
 	}
 
-	elapsedTime := time.Since(start)
-	return &Stats{
-		Operations: operations,
-		ElapsedMs:  elapsedTime.Milliseconds(),
-	}, err
+	stats.ElapsedMs = time.Since(startTime).Milliseconds()
+
+	return stats, err
+}
+
+func processFile(channel chan *Operation, options *Options, license string, ioHandler ioHandle, path string, info os.FileInfo, err error) bool {
+
+	if info.IsDir() {
+		return false
+	}
+	if shouldIgnorePath(path, options.IgnorePaths) {
+		return false
+	}
+	if shouldIgnoreExtension(path, options.Extensions) {
+		return false
+	}
+
+	if err != nil {
+		onError(channel, path)
+		return true
+	}
+
+	data, err := ioHandler.ReadFile(path)
+	if err != nil {
+		onError(channel, path)
+		return true
+	}
+
+	go func() {
+		content := string(data)
+		action := File(path, content, license, options, ioHandler)
+		channel <- &Operation{
+			Action: action,
+			Path:   path,
+		}
+	}()
+
+	return true
+}
+
+func onError(channel chan *Operation, path string) {
+	go func() {
+		channel <- &Operation{
+			Action: OperationError,
+			Path:   path,
+		}
+	}()
 }

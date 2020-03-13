@@ -23,8 +23,8 @@ SOFTWARE.
 
 package process
 
-// FakeFileWithoutLicense is a fake file that does not have any license
-const FakeFileWithoutLicense = `const http = require('http');
+// fakeFileWithoutLicense is a fake file that does not have any license
+const fakeFileWithoutLicense = `const http = require('http');
 
 const hostname = '127.0.0.1';
 const port = 3000;
@@ -36,8 +36,8 @@ res.end('Hello World');
 });
 `
 
-// FakeTargetLicenseHeader is the target license
-const FakeTargetLicenseHeader = `/*
+// fakeTargetLicenseHeader is the target license
+const fakeTargetLicenseHeader = `/*
 * This file is part of the XXX distribution (https://github.com/xxxx or http://xxx.github.io).
 * Copyright (c) 2020 The Autor.
 *
@@ -55,8 +55,8 @@ const FakeTargetLicenseHeader = `/*
 */
 `
 
-// FakeFileWithTargetLicenseHeader is a fake file that has the target license
-const FakeFileWithTargetLicenseHeader = `/*
+// fakeFileWithTargetLicenseHeader is a fake file that has the target license
+const fakeFileWithTargetLicenseHeader = `/*
 * This file is part of the XXX distribution (https://github.com/xxxx or http://xxx.github.io).
 * Copyright (c) 2020 The Autor.
 *
@@ -85,8 +85,8 @@ res.end('Hello World');
 });
 `
 
-// FakeFileWithDifferentLicenseHeader is a fake file with a license that is not the target one
-const FakeFileWithDifferentLicenseHeader = `/*
+// fakeFileWithDifferentLicenseHeader is a fake file with a license that is not the target one
+const fakeFileWithDifferentLicenseHeader = `/*
 * MIT License
 *
 * Copyright (c) 2020 The Author

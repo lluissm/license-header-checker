@@ -48,7 +48,7 @@ func Parse(osArgs []string) (*Options, error) {
 		fmt.Fprintf(flag.CommandLine.Output(), "license-header-checker [-a] [-r] [-v] [-i path1,...] license-header-path src-path extensions...\n\n")
 		fmt.Fprintf(flag.CommandLine.Output(), "\033[1;4mOPTIONS\033[0m\n\n")
 		flagSet.PrintDefaults()
-		fmt.Fprintf(flag.CommandLine.Output(), "\033[1;4mEXAMPLE\033[0m\n\n")
+		fmt.Fprintf(flag.CommandLine.Output(), "\n\033[1;4mEXAMPLE\033[0m\n\n")
 		fmt.Fprintf(flag.CommandLine.Output(), "license-header-checker -a -r -v -i folder,ignore/path license-header-path project-src-path extension1 extension2\n\n")
 	}
 
