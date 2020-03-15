@@ -31,14 +31,14 @@ import (
 )
 
 func TestContainsLicenseHeader(t *testing.T) {
-	assert.True(t, containsLicenseHeader(FakeFileWithTargetLicenseHeader))
-	assert.True(t, containsLicenseHeader(FakeFileWithDifferentLicenseHeader))
-	assert.False(t, containsLicenseHeader(FakeFileWithoutLicense))
+	assert.True(t, containsLicenseHeader(fakeFileWithTargetLicenseHeader))
+	assert.True(t, containsLicenseHeader(fakeFileWithDifferentLicenseHeader))
+	assert.False(t, containsLicenseHeader(fakeFileWithoutLicense))
 }
 
 func TestExtractHeader(t *testing.T) {
-	expected := strings.TrimSpace(FakeTargetLicenseHeader)
-	input := FakeFileWithTargetLicenseHeader
+	expected := strings.TrimSpace(fakeTargetLicenseHeader)
+	input := fakeFileWithTargetLicenseHeader
 	output := extractHeader(input)
 	assert.True(t, output == expected)
 
@@ -49,29 +49,29 @@ func TestExtractHeader(t *testing.T) {
 }
 
 func TestRemoveHeader(t *testing.T) {
-	expected := FakeFileWithoutLicense
+	expected := fakeFileWithoutLicense
 
-	input := FakeFileWithTargetLicenseHeader
+	input := fakeFileWithTargetLicenseHeader
 	output := removeHeader(input)
 	assert.True(t, output == expected)
 
-	input = FakeFileWithDifferentLicenseHeader
+	input = fakeFileWithDifferentLicenseHeader
 	output = removeHeader(input)
 	assert.True(t, output == expected)
 }
 
 func TestInsertHeader(t *testing.T) {
-	expected := FakeFileWithTargetLicenseHeader
-	input := FakeFileWithoutLicense
-	header := FakeTargetLicenseHeader
+	expected := fakeFileWithTargetLicenseHeader
+	input := fakeFileWithoutLicense
+	header := fakeTargetLicenseHeader
 	output := insertHeader(input, header)
 	assert.True(t, output == expected)
 }
 
 func TestReplaceHeader(t *testing.T) {
-	expected := FakeFileWithTargetLicenseHeader
-	input := FakeFileWithDifferentLicenseHeader
-	header := FakeTargetLicenseHeader
+	expected := fakeFileWithTargetLicenseHeader
+	input := fakeFileWithDifferentLicenseHeader
+	header := fakeTargetLicenseHeader
 	output := replaceHeader(input, header)
 	assert.True(t, output == expected)
 }

@@ -21,31 +21,39 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
-package main
+package process
 
 import (
-	"fmt"
-	"log"
-	"os"
+	"testing"
 
-	"github.com/lsm-dev/license-header-checker/internal/options"
-	"github.com/lsm-dev/license-header-checker/pkg/process"
+	"github.com/stretchr/testify/assert"
 )
 
-var version string = "development"
+func TestAddOperation(t *testing.T) {
+	stats := NewStats()
 
-func main() {
-	options, err := options.Parse(os.Args)
-	if err != nil {
-		log.Fatal(err.Error())
-	}
-	if options.ShowVersion {
-		fmt.Printf("version: %s\n", version)
-		os.Exit(0)
-	}
-	stats, err := process.Files(options.Process, new(ioHandler))
-	if err != nil {
-		log.Fatal(err.Error())
-	}
-	print(options, stats)
+	stats.AddOperation(&Operation{
+		Action: LicenseAdded,
+		Path:   "path1",
+	})
+	stats.AddOperation(&Operation{
+		Action: LicenseReplaced,
+		Path:   "path2",
+	})
+	stats.AddOperation(&Operation{
+		Action: LicenseOk,
+		Path:   "path3",
+	})
+	stats.AddOperation(&Operation{
+		Action: LicenseOk,
+		Path:   "path4",
+	})
+
+	assert.True(t, len(stats.Files[LicenseAdded]) == 1)
+	assert.True(t, len(stats.Files[LicenseReplaced]) == 1)
+	assert.True(t, len(stats.Files[LicenseOk]) == 2)
+	assert.True(t, stats.Files[LicenseAdded][0] == "path1")
+	assert.True(t, stats.Files[LicenseReplaced][0] == "path2")
+	assert.True(t, stats.Files[LicenseOk][0] == "path3")
+	assert.True(t, stats.Files[LicenseOk][1] == "path4")
 }

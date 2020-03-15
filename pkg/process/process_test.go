@@ -63,13 +63,13 @@ func (s *ioHandlerStub) ReplaceFileContent(filePath string, fileContent string) 
 func (s *ioHandlerStub) ReadFile(filename string) ([]byte, error) {
 	switch filename {
 	case "license.txt":
-		return []byte(FakeTargetLicenseHeader), nil
+		return []byte(fakeTargetLicenseHeader), nil
 	case "file_no_license.cpp":
-		return []byte(FakeFileWithoutLicense), nil
+		return []byte(fakeFileWithoutLicense), nil
 	case "file_good_license.cpp":
-		return []byte(FakeFileWithTargetLicenseHeader), nil
+		return []byte(fakeFileWithTargetLicenseHeader), nil
 	case "file_old_license.cpp":
-		return []byte(FakeFileWithDifferentLicenseHeader), nil
+		return []byte(fakeFileWithDifferentLicenseHeader), nil
 	default:
 		return nil, errors.New("file does not exist")
 	}
@@ -88,21 +88,10 @@ func (s *ioHandlerStub) Walk(path string, walkFn filepath.WalkFunc) error {
 	return nil
 }
 
-func options() *Options {
-	return &Options{
-		Add:         true,
-		Replace:     true,
-		Path:        "source",
-		LicensePath: "license.txt",
-		Extensions:  []string{".cpp"},
-		IgnorePaths: []string{"ignore"},
-	}
-}
-
 func TestFileLicenseOk(t *testing.T) {
 	filePath := "main.cpp"
-	license := FakeTargetLicenseHeader
-	fileContent := FakeFileWithTargetLicenseHeader
+	license := fakeTargetLicenseHeader
+	fileContent := fakeFileWithTargetLicenseHeader
 	handler := new(ioHandlerStub)
 	options := &Options{
 		Add:         true,
@@ -119,8 +108,8 @@ func TestFileLicenseOk(t *testing.T) {
 
 func TestFileAddLicense(t *testing.T) {
 	filePath := "main.cpp"
-	license := FakeTargetLicenseHeader
-	fileContent := FakeFileWithoutLicense
+	license := fakeTargetLicenseHeader
+	fileContent := fakeFileWithoutLicense
 	handler := new(ioHandlerStub)
 	options := &Options{
 		Add:         true,
@@ -147,8 +136,8 @@ func TestFileAddLicense(t *testing.T) {
 
 func TestFileReplaceLicense(t *testing.T) {
 	filePath := "main.cpp"
-	license := FakeTargetLicenseHeader
-	fileContent := FakeFileWithDifferentLicenseHeader
+	license := fakeTargetLicenseHeader
+	fileContent := fakeFileWithDifferentLicenseHeader
 	handler := new(ioHandlerStub)
 	options := &Options{
 		Add:         true,
@@ -190,9 +179,11 @@ func TestFilesSuccess(t *testing.T) {
 		"file_old_license.h",    // extension to ignore
 		"ignore/file.cpp"}       // path to ignore
 
-	stats, err := processFiles(options, handler)
+	stats, err := Files(options, handler)
 	assert.Nil(t, err)
-	assert.True(t, len(stats.Operations) == 3)
+	assert.True(t, len(stats.Files[LicenseOk]) == 1)
+	assert.True(t, len(stats.Files[LicenseReplaced]) == 1)
+	assert.True(t, len(stats.Files[LicenseAdded]) == 1)
 }
 
 func TestFilesErrorReadingLicense(t *testing.T) {
@@ -208,7 +199,7 @@ func TestFilesErrorReadingLicense(t *testing.T) {
 
 	handler.pathsToWalk = []string{"file_no_license.cpp"}
 
-	_, err := processFiles(options, handler)
+	_, err := Files(options, handler)
 	assert.NotNil(t, err)
 }
 
@@ -226,10 +217,9 @@ func TestFilesDoesNotCountDir(t *testing.T) {
 	handler.pathsToWalk = []string{"file_no_license.cpp"}
 	handler.isDir = true
 
-	stats, err := processFiles(options, handler)
+	stats, err := Files(options, handler)
 	assert.Nil(t, err)
-	assert.True(t, len(stats.Operations) == 0)
-
+	assert.True(t, len(stats.Files[LicenseAdded]) == 0)
 }
 
 func TestFilesErrorReadingFile(t *testing.T) {
@@ -246,10 +236,9 @@ func TestFilesErrorReadingFile(t *testing.T) {
 
 	handler.pathsToWalk = []string{"file_does_not_exist.cpp"}
 
-	stats, err := processFiles(options, handler)
+	stats, err := Files(options, handler)
 	assert.Nil(t, err)
-	assert.True(t, len(stats.Operations) == 1)
-	assert.True(t, stats.Operations[0].Action == OperationError)
+	assert.True(t, len(stats.Files[OperationError]) == 1)
 }
 
 func TestFilesErrorSentByWalk(t *testing.T) {
@@ -266,8 +255,7 @@ func TestFilesErrorSentByWalk(t *testing.T) {
 	handler.pathsToWalk = []string{"file_no_license.cpp"}
 	handler.errorWalkingPath = true
 
-	stats, err := processFiles(options, handler)
+	stats, err := Files(options, handler)
 	assert.Nil(t, err)
-	assert.True(t, len(stats.Operations) == 1)
-	assert.True(t, stats.Operations[0].Action == OperationError)
+	assert.True(t, len(stats.Files[OperationError]) == 1)
 }
