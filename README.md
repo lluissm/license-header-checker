@@ -47,7 +47,7 @@ $ license-header-checker -v -a -r -i node_modules,client/assets ../license_heade
 The binary packages for Linux, Windows and macOS are uploaded for each release and can be downloaded from [here](https://github.com/lsm-dev/license-header-checker/releases).
 
 ## Building from source
-The tool has been built with [go 1.13](https://golang.org/doc/devel/release.html#go1.13).
+The tool has been built with [go 1.17](https://golang.org/doc/devel/release.html#go1.17).
 
 To **build**:
 
