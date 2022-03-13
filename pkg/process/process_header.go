@@ -37,21 +37,20 @@ func containsLicenseHeader(content string) bool {
 
 // extractHeader returns the first block comment of the content (if any). Empty string otherwise.
 func extractHeader(content string) (header string) {
+	found := false
 	for _, line := range strings.Split(content, "\n") {
 		if strings.Contains(line, "*/") {
 			header += line
 			return
 		}
-		header += line + "\n"
+		if strings.Contains(line, "/*") {
+			found = true
+		}
+		if found {
+			header += line + "\n"
+		}
 	}
 	return ""
-}
-
-// removeHeader removes the header from the content as well as potential empty lines between the header and the body
-func removeHeader(content string) string {
-	header := extractHeader(content)
-	body := strings.ReplaceAll(content, header, "")
-	return strings.TrimLeft(body, "\n")
 }
 
 // insertHeader inserts the provided header at the beginning of the content separated by one empty line
@@ -61,7 +60,7 @@ func insertHeader(content, header string) string {
 
 // replaceHeader removes the current header and inserts the provided one
 func replaceHeader(content, header string) (res string) {
-	res = removeHeader(content)
-	res = insertHeader(res, header)
+	oldHeader := extractHeader(content)
+	res = strings.ReplaceAll(content, strings.TrimSpace(oldHeader), strings.TrimSpace(header))
 	return res
 }
