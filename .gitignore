@@ -19,3 +19,5 @@ sample-project/
 
 # Output file from go build
 bin/
+
+.vscode
