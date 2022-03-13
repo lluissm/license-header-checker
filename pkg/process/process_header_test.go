@@ -38,25 +38,19 @@ func TestContainsLicenseHeader(t *testing.T) {
 
 func TestExtractHeader(t *testing.T) {
 	expected := strings.TrimSpace(fakeTargetLicenseHeader)
+
 	input := fakeFileWithTargetLicenseHeader
 	output := extractHeader(input)
+	assert.True(t, output == expected)
+
+	// Check that build tags are not included in the extracted header
+	input = fakeFileWithTargetLicenseHeaderAndBuildTag
+	output = extractHeader(input)
 	assert.True(t, output == expected)
 
 	expected = "/* copyright */"
 	input = "/* copyright */\nlorem ipsum dolor sit amet"
 	output = extractHeader(input)
-	assert.True(t, output == expected)
-}
-
-func TestRemoveHeader(t *testing.T) {
-	expected := fakeFileWithoutLicense
-
-	input := fakeFileWithTargetLicenseHeader
-	output := removeHeader(input)
-	assert.True(t, output == expected)
-
-	input = fakeFileWithDifferentLicenseHeader
-	output = removeHeader(input)
 	assert.True(t, output == expected)
 }
 
@@ -69,9 +63,16 @@ func TestInsertHeader(t *testing.T) {
 }
 
 func TestReplaceHeader(t *testing.T) {
+	header := fakeTargetLicenseHeader
+
 	expected := fakeFileWithTargetLicenseHeader
 	input := fakeFileWithDifferentLicenseHeader
-	header := fakeTargetLicenseHeader
 	output := replaceHeader(input, header)
+	assert.True(t, output == expected)
+
+	// Check that build tags are not removed after replacing license
+	expected = fakeFileWithTargetLicenseHeaderAndBuildTag
+	input = fakeFileWithDifferentLicenseHeaderAndBuildTag
+	output = replaceHeader(input, header)
 	assert.True(t, output == expected)
 }
