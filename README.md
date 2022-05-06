@@ -1,6 +1,6 @@
 ![Header](images/header.png)
 
-![Build Status](https://github.com/lsm-dev/license-header-checker/workflows/Build/badge.svg)   ![Test Status](https://github.com/lsm-dev/license-header-checker/workflows/Test/badge.svg)
+![Build Status](https://github.com/lluissm/license-header-checker/workflows/Build/badge.svg) ![Test Status](https://github.com/lluissm/license-header-checker/workflows/Test/badge.svg)
 
 Multiplatform command line tool that **checks** whether the **license headers** are included in the **source files** of a project.
 
@@ -11,9 +11,9 @@ Multiplatform command line tool that **checks** whether the **license headers** 
 
 _DISCLAIMER_
 
-The tool expects the software license to be in a **block comment at the beginning of the file** following the format `/*  */`. 
+The tool expects the software license to be in a **block comment at the beginning of the file** following the format `/* */`.
 
-Thus, while it does support the source files of languages like *Go, Rust, JavaScript, TypeScript, C, C++, Java, Swift, Kotlin and C#*, it does not support the file extensions that do not use this style.
+Thus, while it does support the source files of languages like _Go, Rust, JavaScript, TypeScript, C, C++, Java, Swift, Kotlin and C#_, it does not support the file extensions that do not use this style.
 
 # Usage
 
@@ -29,7 +29,7 @@ $ license-header-checker [-a] [-r] [-v] [-i path1,...] license-header-path src-p
   -a        Add the target license in case the file does not have any.
   -r        Replace the existing license by the target one in case they are different.
   -v        Be verbose during execution.
-  -i        A comma separated list of the folders, files and/or paths that should be ignored. 
+  -i        A comma separated list of the folders, files and/or paths that should be ignored.
             It does not support wildcards.
   -version  Display version number.
 ```
@@ -44,9 +44,10 @@ $ license-header-checker -v -a -r -i node_modules,client/assets ../license_heade
 
 ## Binary packages
 
-The binary packages for Linux, Windows and macOS are uploaded for each release and can be downloaded from [here](https://github.com/lsm-dev/license-header-checker/releases).
+The binary packages for Linux, Windows and macOS are uploaded for each release and can be downloaded from [here](https://github.com/lluissm/license-header-checker/releases).
 
 ## Building from source
+
 The tool has been built with [go 1.17](https://golang.org/doc/devel/release.html#go1.17).
 
 To **build**:
@@ -66,16 +67,19 @@ To **cross-compile** (generate the binaries for Linux, Windows and macOS all at 
 ```bash
 $ make cross-build
 ```
+
 To run **unit tests**:
 
 ```bash
 $ make test
 ```
+
 To see **unit test coverage**:
 
 ```bash
 $ make test-cover
 ```
+
 To run **end-to-end tests**:
 
 ```bash

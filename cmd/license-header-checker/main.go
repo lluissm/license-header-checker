@@ -28,8 +28,8 @@ import (
 	"log"
 	"os"
 
-	"github.com/lsm-dev/license-header-checker/internal/options"
-	"github.com/lsm-dev/license-header-checker/pkg/process"
+	"github.com/lluissm/license-header-checker/internal/options"
+	"github.com/lluissm/license-header-checker/pkg/process"
 )
 
 var version string = "development"

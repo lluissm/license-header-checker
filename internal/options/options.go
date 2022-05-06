@@ -29,7 +29,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/lsm-dev/license-header-checker/pkg/process"
+	"github.com/lluissm/license-header-checker/pkg/process"
 )
 
 // Options are the process.Options parsed from command line flags/args
