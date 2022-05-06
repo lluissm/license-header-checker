@@ -1,4 +1,4 @@
-module github.com/lsm-dev/license-header-checker
+module github.com/lluissm/license-header-checker
 
 go 1.13
 
