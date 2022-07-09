@@ -3,7 +3,6 @@
 GITHUB_RELEASE=https://github.com/lluissm/license-header-checker/releases/download/v1.3.0
 CMD=license-header-checker
 FILENAME="${CMD}_linux_amd64"
-DOWNLOAD_URL="${GITHUB_RELEASE}/${FILENAME}"
 INSTALL_PATH=/usr/local/bin
 
 if [[ $OSTYPE == 'darwin'* ]]; then
@@ -14,6 +13,7 @@ if [[ $OSTYPE == 'darwin'* ]]; then
 	fi
 fi
 
+DOWNLOAD_URL="${GITHUB_RELEASE}/${FILENAME}"
 echo "Downloading ${DOWNLOAD_URL}"
 curl -LJOs $DOWNLOAD_URL
 
