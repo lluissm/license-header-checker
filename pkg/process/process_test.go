@@ -48,7 +48,6 @@ func (f *fileInfoStub) Sys() interface{}   { return "sys" }
 type ioHandlerStub struct {
 	pathsToWalk               []string
 	isDir                     bool
-	errorReadingFile          bool
 	errorReplacingFileContent bool
 	errorWalkingPath          bool
 }
@@ -80,9 +79,13 @@ func (s *ioHandlerStub) Walk(path string, walkFn filepath.WalkFunc) error {
 	fileInfo.isDir = s.isDir
 	for _, path := range s.pathsToWalk {
 		if s.errorWalkingPath {
-			walkFn(path, fileInfo, errors.New("error"))
+			if err := walkFn(path, fileInfo, errors.New("error")); err != nil {
+				return err
+			}
 		} else {
-			walkFn(path, fileInfo, nil)
+			if err := walkFn(path, fileInfo, nil); err != nil {
+				return err
+			}
 		}
 	}
 	return nil
