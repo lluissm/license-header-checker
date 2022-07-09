@@ -15,7 +15,7 @@ The tool expects the software license to be in a **block comment at the beginnin
 
 Thus, while it does support the source files of languages like _Go, Rust, JavaScript, TypeScript, C, C++, Java, Swift, Kotlin and C#_, it does not support the file extensions that do not use this style.
 
-# Usage
+# Command Usage
 
 ## Syntax
 
@@ -38,6 +38,29 @@ $ license-header-checker [-a] [-r] [-v] [-i path1,...] license-header-path src-p
 
 ```bash
 $ license-header-checker -v -a -r -i node_modules,client/assets ../license_header.txt . js ts
+```
+
+# Using in CI
+
+## GitHub Action example
+
+```yml
+name: license-check
+on: [push]
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v3
+      - name: Set up Go
+        uses: actions/setup-go@v3
+        with:
+          go-version: "1.18.3"
+      - name: Install license-header-checker
+        run: ./install.sh
+      - name: Run license check
+        run: license-header-checker -a -r ./license_header.txt . go && [[ -z `git status -s` ]]
 ```
 
 # Installation
