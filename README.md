@@ -2,7 +2,7 @@
 
 # license-header-checker
 
-![Build Status](https://github.com/lluissm/license-header-checker/workflows/Build/badge.svg) ![Test Status](https://github.com/lluissm/license-header-checker/workflows/Test/badge.svg)
+![Test Status](https://github.com/lluissm/license-header-checker/workflows/Test/badge.svg)
 
 Multiplatform command line tool that **checks** whether the **license headers** are included in the **source files** of a project.
 
