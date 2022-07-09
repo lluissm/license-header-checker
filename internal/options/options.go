@@ -58,7 +58,9 @@ func Parse(osArgs []string) (*Options, error) {
 	verboseFlag := flagSet.Bool("v", false, "Be verbose during execution printing options, files being processed, execution time, ...")
 	showVersionFlag := flagSet.Bool("version", false, "Display version number")
 
-	flagSet.Parse(osArgs[1:])
+	if err := flagSet.Parse(osArgs[1:]); err != nil {
+		return nil, err
+	}
 
 	args := flagSet.Args()
 

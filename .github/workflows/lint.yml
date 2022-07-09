@@ -1,8 +1,7 @@
-name: Build
+name: Lint
 on: [push]
 jobs:
-  build:
-    name: Build
+  golangci:
     runs-on: ubuntu-latest
     steps:
       - name: Check out code
@@ -11,5 +10,7 @@ jobs:
         uses: actions/setup-go@v3
         with:
           go-version: "1.18.3"
-      - name: Build
-        run: make build
+      - name: golangci-lint
+        uses: golangci/golangci-lint-action@v3
+        with:
+          version: latest

@@ -1,8 +1,7 @@
 name: Test
 on: [push]
 jobs:
-  build:
-    name: Test
+  test:
     runs-on: ubuntu-latest
     steps:
       - name: Check out code
@@ -11,6 +10,8 @@ jobs:
         uses: actions/setup-go@v3
         with:
           go-version: "1.18.3"
+      - name: Build
+        run: make build
       - name: Test
         run: make test
       - name: Test end to end

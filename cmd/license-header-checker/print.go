@@ -102,7 +102,7 @@ func printFiles(stats *process.Stats) {
 // printOptions prints the options that were supplied to the cli app
 func printOptions(options *options.Options) {
 	fmt.Printf("options:\n")
-	fmt.Printf("  project_path: %s\n", infoRender(fmt.Sprintf("%s", options.Process.Path)))
+	fmt.Printf("  project_path: %s\n", infoRender(options.Process.Path))
 	if len(options.Process.IgnorePaths) > 0 {
 		fmt.Printf("  ignore_paths:\n")
 		for _, ignorePaths := range options.Process.IgnorePaths {
@@ -123,7 +123,7 @@ func printOptions(options *options.Options) {
 	if options.Verbose {
 		fmt.Printf("    - %s\n", infoRender("verbose"))
 	}
-	fmt.Printf("  license_header: %s\n", infoRender(fmt.Sprintf("%s", options.Process.LicensePath)))
+	fmt.Printf("  license_header: %s\n", infoRender("%s", options.Process.LicensePath))
 }
 
 // printTotals prints the aggregated data

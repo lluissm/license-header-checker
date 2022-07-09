@@ -1,7 +1,7 @@
-name: License Check
+name: License Headers
 on: [push]
 jobs:
-  build:
+  license-check:
     runs-on: ubuntu-latest
     steps:
       - name: Check out code
