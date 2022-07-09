@@ -45,7 +45,7 @@ $ license-header-checker -v -a -r -i node_modules,client/assets ../license_heade
 ## GitHub Action example
 
 ```yml
-name: license-check
+name: License Check
 on: [push]
 jobs:
   build:
@@ -53,12 +53,8 @@ jobs:
     steps:
       - name: Check out code
         uses: actions/checkout@v3
-      - name: Set up Go
-        uses: actions/setup-go@v3
-        with:
-          go-version: "1.18.3"
       - name: Install license-header-checker
-        run: ./install.sh
+        run: curl -s https://raw.githubusercontent.com/lluissm/license-header-checker/master/install.sh | bash
       - name: Run license check
         run: license-header-checker -a -r ./license_header.txt . go && [[ -z `git status -s` ]]
 ```
@@ -67,10 +63,18 @@ jobs:
 
 ## Install script
 
-For linux and MacOS systems you can use the install script:
+For linux and MacOS systems you can use the install script.
+
+To install the latest version:
 
 ```bash
 $ curl -s https://raw.githubusercontent.com/lluissm/license-header-checker/master/install.sh | bash
+```
+
+To install a specific version (e.g., v.1.3.0):
+
+```bash
+$ curl -s https://raw.githubusercontent.com/lluissm/license-header-checker/master/install.sh | bash -s v1.3.0
 ```
 
 ## Binary packages
