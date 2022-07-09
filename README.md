@@ -1,12 +1,14 @@
 ![Header](images/header.png)
 
+# license-header-checker
+
 ![Build Status](https://github.com/lluissm/license-header-checker/workflows/Build/badge.svg) ![Test Status](https://github.com/lluissm/license-header-checker/workflows/Test/badge.svg)
 
 Multiplatform command line tool that **checks** whether the **license headers** are included in the **source files** of a project.
 
 - It can **insert the license** to a file in case it does not exist (optional).
 - It can **replace the license** of a file in case it is different than the target (optional).
-- It is possible to **choose the file extensions that will be processed**.
+- **Only selected file extensions** will be **processed**.
 - Specific **folders, files and paths can be ignored**.
 
 _DISCLAIMER_
@@ -15,15 +17,15 @@ The tool expects the software license to be in a **block comment at the beginnin
 
 Thus, while it does support the source files of languages like _Go, Rust, JavaScript, TypeScript, C, C++, Java, Swift, Kotlin and C#_, it does not support the file extensions that do not use this style.
 
-# Command Usage
+## Command Usage
 
-## Syntax
+### Syntax
 
 ```bash
 $ license-header-checker [-a] [-r] [-v] [-i path1,...] license-header-path src-path extensions...
 ```
 
-## Options
+### Options
 
 ```
   -a        Add the target license in case the file does not have any.
@@ -34,15 +36,15 @@ $ license-header-checker [-a] [-r] [-v] [-i path1,...] license-header-path src-p
   -version  Display version number.
 ```
 
-## Example
+### Example
 
 ```bash
 $ license-header-checker -v -a -r -i node_modules,client/assets ../license_header.txt . js ts
 ```
 
-# Using in CI
+## Usage in CI
 
-## GitHub Action example
+### GitHub Action example
 
 ```yml
 name: License Check
@@ -59,9 +61,9 @@ jobs:
         run: license-header-checker -a -r ./license_header.txt . go && [[ -z `git status -s` ]]
 ```
 
-# Installation
+## How to install
 
-## Install script
+### Install script
 
 For linux and MacOS systems you can use the install script.
 
@@ -77,11 +79,11 @@ To install a specific version (e.g., v.1.3.0):
 $ curl -s https://raw.githubusercontent.com/lluissm/license-header-checker/master/install.sh | bash -s v1.3.0
 ```
 
-## Binary packages
+### Binary packages
 
 The binary packages for Linux, Windows and macOS are uploaded for each release and can be downloaded from the [releases](https://github.com/lluissm/license-header-checker/releases) page.
 
-## Installing from source
+### Building from source
 
 Provided you have Go and make installed, just type:
 
