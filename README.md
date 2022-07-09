@@ -5,7 +5,7 @@
 Multiplatform command line tool that **checks** whether the **license headers** are included in the **source files** of a project.
 
 - It can **insert the license** to a file in case it does not exist (optional).
-- It can **replace the license** of a file in case it is different (optional).
+- It can **replace the license** of a file in case it is different than the target (optional).
 - It is possible to **choose the file extensions that will be processed**.
 - Specific **folders, files and paths can be ignored**.
 
@@ -42,46 +42,22 @@ $ license-header-checker -v -a -r -i node_modules,client/assets ../license_heade
 
 # Installation
 
-## Binary packages
+## Install script
 
-The binary packages for Linux, Windows and macOS are uploaded for each release and can be downloaded from [here](https://github.com/lluissm/license-header-checker/releases).
-
-## Building from source
-
-The tool has been built with [go 1.17](https://golang.org/doc/devel/release.html#go1.17).
-
-To **build**:
+For linux and MacOS systems you can use the install script:
 
 ```bash
-$ make build
+$ curl -s https://raw.githubusercontent.com/lluissm/license-header-checker/master/install.sh | bash
 ```
 
-To **install** in go/bin:
+## Binary packages
+
+The binary packages for Linux, Windows and macOS are uploaded for each release and can be downloaded from the [releases](https://github.com/lluissm/license-header-checker/releases) page.
+
+## Installing from source
+
+Provided you have Go and make installed, just type:
 
 ```bash
 $ make install
-```
-
-To **cross-compile** (generate the binaries for Linux, Windows and macOS all at once):
-
-```bash
-$ make cross-build
-```
-
-To run **unit tests**:
-
-```bash
-$ make test
-```
-
-To see **unit test coverage**:
-
-```bash
-$ make test-cover
-```
-
-To run **end-to-end tests**:
-
-```bash
-$ make test-e2e
 ```
