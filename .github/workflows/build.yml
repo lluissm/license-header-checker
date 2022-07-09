@@ -1,4 +1,3 @@
-
 name: Build
 on: [push]
 jobs:
@@ -6,12 +5,11 @@ jobs:
     name: Build
     runs-on: ubuntu-latest
     steps:
-      - name: Set up Go 1.17
-        uses: actions/setup-go@v1
+      - name: Check out code
+        uses: actions/checkout@v3
+      - name: Set up Go
+        uses: actions/setup-go@v3
         with:
-          go-version: 1.17
-        id: go
-      - name: Check out code into the Go module directory
-        uses: actions/checkout@v2
+          go-version: "1.18.3"
       - name: Build
         run: make build
