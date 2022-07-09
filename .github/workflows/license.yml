@@ -1,4 +1,4 @@
-name: license-check
+name: License Check
 on: [push]
 jobs:
   build:
@@ -6,11 +6,7 @@ jobs:
     steps:
       - name: Check out code
         uses: actions/checkout@v3
-      - name: Set up Go
-        uses: actions/setup-go@v3
-        with:
-          go-version: "1.18.3"
       - name: Install license-header-checker
-        run: ./install.sh
+        run: curl -s https://raw.githubusercontent.com/lluissm/license-header-checker/master/install.sh | bash
       - name: Run license check
         run: license-header-checker -a -r ./license_header.txt . go && [[ -z `git status -s` ]]
