@@ -21,48 +21,24 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
-package main
+package process
 
-import (
-	"bufio"
-	"fmt"
-	"io/ioutil"
-	"os"
-	"path/filepath"
-)
+import _ "embed"
 
-// ioHandler implements the ioHandle interface defined in the process package
-type ioHandler struct{}
+//go:embed testdata/target_license_header.txt
+var testTargetLicenseHeader string
 
-func (s *ioHandler) ReadFile(name string) ([]byte, error) {
-	return ioutil.ReadFile(name)
-}
+//go:embed testdata/js_without_license.js
+var testFileWithoutLicense string
 
-func (s *ioHandler) Walk(path string, walkFn filepath.WalkFunc) error {
-	return filepath.Walk(path, walkFn)
-}
+//go:embed testdata/js_with_target_header.js
+var testFileWithTargetLicense string
 
-func (s *ioHandler) ReplaceFileContent(name string, content string) error {
-	err := os.Remove(name)
-	if err != nil {
-		return fmt.Errorf("failed deleting the file: %w", err)
-	}
+//go:embed testdata/js_with_different_header.js
+var testFileWithDifferentLicense string
 
-	file, err := os.OpenFile(name, os.O_CREATE|os.O_WRONLY, 0600)
-	if err != nil {
-		return fmt.Errorf("failed opening file: %w", err)
-	}
-	defer file.Close()
+//go:embed testdata/go_with_target_header_and_build_tag.go
+var testFileWithBuildTagsAndTargetLicense string
 
-	writer := bufio.NewWriter(file)
-	_, err = writer.WriteString(content)
-	if err != nil {
-		return fmt.Errorf("failed writing to file: %w", err)
-	}
-
-	if err = writer.Flush(); err != nil {
-		return fmt.Errorf("failed writing to file: %w", err)
-	}
-
-	return nil
-}
+//go:embed testdata/go_with_different_header_and_build_tag.go
+var testFileWithBuildTagsAndDifferentLicense string

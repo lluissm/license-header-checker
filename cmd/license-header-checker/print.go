@@ -38,8 +38,9 @@ var (
 	errorRender   = color.FgRed.Render
 )
 
-// print cli output
-func print(options *options.Options, stats *process.Stats) {
+// printStats writes to the standard output the result of the processing according
+// to the verbosity level
+func printStats(options *options.Options, stats *process.Stats) {
 	if options.Verbose {
 		printFiles(stats)
 		printOptions(options)
@@ -50,7 +51,7 @@ func print(options *options.Options, stats *process.Stats) {
 	printWarnings(stats)
 }
 
-// printShort prints stats in compact mode (non-verbose)
+// printShort prints the result of the processing in a compact mode (non-verbose)
 func printShort(stats *process.Stats) {
 	fmt.Printf("%s licenses ok, %s licenses replaced, %s licenses added\n",
 		okRender(fmt.Sprintf("%d", len(stats.Files[process.LicenseOk]))),
@@ -58,7 +59,7 @@ func printShort(stats *process.Stats) {
 		errorRender(fmt.Sprintf("%d", len(stats.Files[process.LicenseAdded]))))
 }
 
-// printFiles prints the the output of each file grouped by result type
+// printFiles prints the the output of each file grouped by the result type
 func printFiles(stats *process.Stats) {
 	fmt.Printf("files:\n")
 	if licensesOk := stats.Files[process.LicenseOk]; len(licensesOk) > 0 {
@@ -150,7 +151,8 @@ func printTotals(stats *process.Stats) {
 	fmt.Printf("  elapsed_time: %s\n", infoRender(fmt.Sprintf("%vms", stats.ElapsedMs)))
 }
 
-// printWarnings prints warnings to the user in case he/she may have forgotten to add -a or -r flag
+// printWarnings warns the user that the -a or -r flag were not provided
+// and they may have had been useful
 func printWarnings(stats *process.Stats) {
 	if skippedAdds := len(stats.Files[process.SkippedAdd]); skippedAdds > 0 {
 		color.Error.Printf("[!] %d files had no license but were not changed as the -a (add) option was not supplied.\n", skippedAdds)

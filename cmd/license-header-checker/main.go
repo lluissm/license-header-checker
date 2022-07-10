@@ -37,7 +37,7 @@ var version string = "development"
 func main() {
 	options, err := options.Parse(os.Args)
 	if err != nil {
-		log.Fatal(err.Error())
+		log.Fatalf("could not parse the cli args: %s", err.Error())
 	}
 	if options.ShowVersion {
 		fmt.Printf("version: %s\n", version)
@@ -45,7 +45,7 @@ func main() {
 	}
 	stats, err := process.Files(options.Process, new(ioHandler))
 	if err != nil {
-		log.Fatal(err.Error())
+		log.Fatalf("could not process the files: %s", err.Error())
 	}
-	print(options, stats)
+	printStats(options, stats)
 }
