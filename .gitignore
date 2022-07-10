@@ -21,3 +21,5 @@ sample-project/
 bin/
 
 .vscode
+dist/
+.tools/

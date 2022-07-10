@@ -34,15 +34,41 @@ install:
 	@echo ">> Installing ${CMD} ${VERSION} in ${GOPATH}/bin"
 	go install ${LD_FLAGS} ${BUILD_PATH}
 
-build-all: clean
-	@echo ">> Building MacOS intel"
-	env GOOS=darwin GOARCH=amd64 go build ${LD_FLAGS} -o ${BIN_PATH}/targets/${CMD}_macos_intel $(BUILD_PATH)
+TOOLS := $(CURDIR)/.tools
 
-	@echo ">> Building MacOS arm"
-	env GOOS=darwin GOARCH=arm64 go build ${LD_FLAGS} -o ${BIN_PATH}/targets/${CMD}_macos_arm64 $(BUILD_PATH)
+install-tools:
+	mkdir -p ${TOOLS}
+	GOPATH=${TOOLS} go install github.com/caarlos0/svu@latest
+	GOPATH=${TOOLS} go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest
+	GOPATH=${TOOLS} go install github.com/goreleaser/goreleaser@latest
 
-	@echo ">> Building Linux amd64"
-	env GOOS=linux GOARCH=amd64 go build ${LD_FLAGS} -o ${BIN_PATH}/targets/${CMD}_linux_amd64 $(BUILD_PATH)
+lint:
+	${TOOLS}/bin/golangci-lint run
 
-	@echo ">> Building Windows amd64"
-	env GOOS=windows GOARCH=amd64 go build ${LD_FLAGS} -o ${BIN_PATH}/targets/${CMD}_windows_amd64.exe $(BUILD_PATH)
+build-one:
+	${TOOLS}/bin/goreleaser build --single-target
+
+# Generate the binaries for all the build targets
+build-all: install-tools
+	${TOOLS}/bin/goreleaser release --snapshot --rm-dist
+
+# Verify that the project builds without errors for all build targets
+build-ci:
+	goreleaser build
+
+
+ARG ?= next
+VERSION := $(shell ${TOOLS}/bin/svu $(ARG))
+release: install-tools
+	echo "$(VERSION)"
+	#git tag "$(VERSION)"
+	#git push origin "$(VERSION)"
+
+release-major: ARG=major
+release-major: release
+
+release-minor: ARG=minor
+release-minor: release
+
+release-patch: ARG=patch
+release-patch: release
