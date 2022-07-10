@@ -33,70 +33,56 @@ import (
 	"github.com/stretchr/testify/mock"
 )
 
-// dirEntryStub mocks fs.DirEntry
-type dirEntryStub struct {
+// dirEntryMock mocks fs.DirEntry
+type dirEntryMock struct {
 	mock.Mock
 }
 
-func (d *dirEntryStub) IsDir() bool {
+func (d *dirEntryMock) IsDir() bool {
 	args := d.Called()
 	return args.Get(0).(bool)
 }
-func (d *dirEntryStub) Name() string               { return "" }
-func (d *dirEntryStub) Type() os.FileMode          { return 0 }
-func (d *dirEntryStub) Info() (os.FileInfo, error) { return nil, nil }
+func (d *dirEntryMock) Name() string               { return "" }
+func (d *dirEntryMock) Type() os.FileMode          { return 0 }
+func (d *dirEntryMock) Info() (os.FileInfo, error) { return nil, nil }
 
 // ioHandlerStub mocks ioHandle
 type ioHandlerStub struct {
-	pathsToWalk               []string
-	isDir                     bool
-	errorReplacingFileContent bool
-	errorWalkingPath          bool
+	mock.Mock
+	pathsToWalk      []string
+	isDir            bool
+	errorWalkingPath bool
 }
 
 func (s *ioHandlerStub) ReplaceFileContent(filePath string, fileContent string) error {
-	if s.errorReplacingFileContent {
-		return errors.New("error")
-	}
-	return nil
+	args := s.Called(filePath, fileContent)
+	return args.Error(0)
 }
 
 func (s *ioHandlerStub) ReadFile(filename string) ([]byte, error) {
-	switch filename {
-	case "license.txt":
-		return []byte(testTargetLicenseHeader), nil
-	case "file_no_license.cpp":
-		return []byte(testFileWithoutLicense), nil
-	case "file_good_license.cpp":
-		return []byte(testFileWithTargetLicense), nil
-	case "file_old_license.cpp":
-		return []byte(testFileWithDifferentLicense), nil
-	default:
-		return nil, errors.New("file does not exist")
-	}
+	args := s.Called(filename)
+	return args.Get(0).([]byte), args.Error(1)
 }
 
 func (s *ioHandlerStub) WalkDir(path string, walkDirFn fs.WalkDirFunc) error {
-	dirEntry := &dirEntryStub{}
+	args := s.Called(path, walkDirFn)
+
+	dirEntry := &dirEntryMock{}
 	dirEntry.On("IsDir").Return(s.isDir)
 	for _, path := range s.pathsToWalk {
+		var errSent error
 		if s.errorWalkingPath {
-			if err := walkDirFn(path, dirEntry, errors.New("error")); err != nil {
-				return err
-			}
-		} else {
-			if err := walkDirFn(path, dirEntry, nil); err != nil {
-				return err
-			}
+			errSent = errors.New("error")
+		}
+		if err := walkDirFn(path, dirEntry, errSent); err != nil {
+			return nil
 		}
 	}
-	return nil
+
+	return args.Error(0)
 }
 
-func TestFileLicenseOk(t *testing.T) {
-	filePath := "main.cpp"
-	license := testTargetLicenseHeader
-	fileContent := testFileWithTargetLicense
+func TestFile_LicenseOk(t *testing.T) {
 	handler := new(ioHandlerStub)
 	options := &Options{
 		Add:         true,
@@ -107,14 +93,12 @@ func TestFileLicenseOk(t *testing.T) {
 		IgnorePaths: []string{"ignore"},
 	}
 
-	op := File(filePath, fileContent, license, options, handler)
+	op := File("main.cpp", testFileWithTargetLicense, testTargetLicenseHeader, options, handler)
 	assert.True(t, op == LicenseOk)
 }
 
-func TestFileAddLicense(t *testing.T) {
-	filePath := "main.cpp"
-	license := testTargetLicenseHeader
-	fileContent := testFileWithoutLicense
+func TestFile_AddLicense(t *testing.T) {
+	fileName := "main.cpp"
 	handler := new(ioHandlerStub)
 	options := &Options{
 		Add:         true,
@@ -125,24 +109,27 @@ func TestFileAddLicense(t *testing.T) {
 		IgnorePaths: []string{"ignore"},
 	}
 
+	// Return SkippedAdd if the file does not contain a license BUT options.Add is false
 	options.Add = false
-	op := File(filePath, fileContent, license, options, handler)
+	op := File(fileName, testFileWithoutLicense, testTargetLicenseHeader, options, handler)
 	assert.True(t, op == SkippedAdd)
 
+	// Return LicenseAdded if the file does not contain a license and options.Add is true
 	options.Add = true
-	op = File(filePath, fileContent, license, options, handler)
+	handler.On("ReplaceFileContent", fileName, testFileWithTargetLicense).Return(nil).Once()
+	op = File(fileName, testFileWithoutLicense, testTargetLicenseHeader, options, handler)
 	assert.True(t, op == LicenseAdded)
+	handler.AssertExpectations(t)
 
+	// Return OperationError if there was an error saving the file
 	options.Add = true
-	handler.errorReplacingFileContent = true
-	op = File(filePath, fileContent, license, options, handler)
+	handler.On("ReplaceFileContent", fileName, testFileWithTargetLicense).Return(errors.New("error")).Once()
+	op = File(fileName, testFileWithoutLicense, testTargetLicenseHeader, options, handler)
 	assert.True(t, op == OperationError)
 }
 
-func TestFileReplaceLicense(t *testing.T) {
-	filePath := "main.cpp"
-	license := testTargetLicenseHeader
-	fileContent := testFileWithDifferentLicense
+func TestFile_ReplaceLicense(t *testing.T) {
+	fileName := "main.cpp"
 	handler := new(ioHandlerStub)
 	options := &Options{
 		Add:         true,
@@ -153,21 +140,26 @@ func TestFileReplaceLicense(t *testing.T) {
 		IgnorePaths: []string{"ignore"},
 	}
 
+	// Return SkippedReplace if the file does not contain a license BUT options.Add is false
 	options.Replace = false
-	op := File(filePath, fileContent, license, options, handler)
+	op := File(fileName, testFileWithDifferentLicense, testTargetLicenseHeader, options, handler)
 	assert.True(t, op == SkippedReplace)
 
+	// Return LicenseReplaced if the file does not contain a license and options.Add is true
 	options.Replace = true
-	op = File(filePath, fileContent, license, options, handler)
+	handler.On("ReplaceFileContent", fileName, testFileWithTargetLicense).Return(nil).Once()
+	op = File(fileName, testFileWithDifferentLicense, testTargetLicenseHeader, options, handler)
 	assert.True(t, op == LicenseReplaced)
+	handler.AssertExpectations(t)
 
+	// Return OperationError if there was an error saving the file
 	options.Replace = true
-	handler.errorReplacingFileContent = true
-	op = File(filePath, fileContent, license, options, handler)
+	handler.On("ReplaceFileContent", fileName, testFileWithTargetLicense).Return(errors.New("error")).Once()
+	op = File(fileName, testFileWithDifferentLicense, testTargetLicenseHeader, options, handler)
 	assert.True(t, op == OperationError)
 }
 
-func TestFilesSuccess(t *testing.T) {
+func TestFiles_Success(t *testing.T) {
 	handler := new(ioHandlerStub)
 	options := &Options{
 		Add:         true,
@@ -178,37 +170,115 @@ func TestFilesSuccess(t *testing.T) {
 		IgnorePaths: []string{"ignore"},
 	}
 
-	handler.pathsToWalk = []string{"file_no_license.cpp", // license to add
+	// Prepare mock ioHandler to walk through all the files
+	handler.pathsToWalk = []string{
+		"file_no_license.cpp",   // license to add
 		"file_good_license.cpp", // license is ok
 		"file_old_license.cpp",  // license to replace
 		"file_old_license.h",    // extension to ignore
 		"ignore/file.cpp"}       // path to ignore
+	handler.On("WalkDir", options.Path, mock.Anything).Return(nil).Once()
 
+	// ReadFile should return the files that should be read (not ignored)
+	handler.On("ReadFile", "license.txt").Return([]byte(testTargetLicenseHeader), nil).Once()
+	handler.On("ReadFile", "file_no_license.cpp").Return([]byte(testFileWithoutLicense), nil).Once()
+	handler.On("ReadFile", "file_good_license.cpp").Return([]byte(testFileWithTargetLicense), nil).Once()
+	handler.On("ReadFile", "file_old_license.cpp").Return([]byte(testFileWithDifferentLicense), nil).Once()
+
+	// ReplaceFileContent should be called for the 2 files where license will be added/replaced
+	handler.On("ReplaceFileContent", "file_no_license.cpp", mock.Anything).Return(nil).Times(1)
+	handler.On("ReplaceFileContent", "file_old_license.cpp", mock.Anything).Return(nil).Times(1)
+
+	// Execute and validate stats
 	stats, err := Files(options, handler)
 	assert.Nil(t, err)
 	assert.True(t, len(stats.Files[LicenseOk]) == 1)
 	assert.True(t, len(stats.Files[LicenseReplaced]) == 1)
 	assert.True(t, len(stats.Files[LicenseAdded]) == 1)
+
+	handler.AssertExpectations(t)
 }
 
-func TestFilesErrorReadingLicense(t *testing.T) {
+func TestFiles_ErrorReadingLicense(t *testing.T) {
 	handler := new(ioHandlerStub)
 	options := &Options{
 		Add:         true,
 		Replace:     true,
 		Path:        "source",
-		LicensePath: "wrong_license.txt",
+		LicensePath: "license.txt",
 		Extensions:  []string{".cpp"},
 		IgnorePaths: []string{"ignore"},
 	}
 
-	handler.pathsToWalk = []string{"file_no_license.cpp"}
+	// Return error while reading the license as if it did not exist
+	handler.On("ReadFile", "license.txt").Return([]byte{}, errors.New("error")).Once()
 
+	// Assert that Files will return an error
 	_, err := Files(options, handler)
 	assert.NotNil(t, err)
+
+	handler.AssertExpectations(t)
 }
 
-func TestFilesDoesNotCountDir(t *testing.T) {
+func TestFiles_ErrorReadingFile(t *testing.T) {
+
+	handler := new(ioHandlerStub)
+	options := &Options{
+		Add:         true,
+		Replace:     true,
+		Path:        "source",
+		LicensePath: "license.txt",
+		Extensions:  []string{".cpp"},
+		IgnorePaths: []string{"ignore"},
+	}
+
+	handler.pathsToWalk = []string{"file.cpp"}
+
+	// Prepare mock ioHandler to walk through all the files
+	handler.pathsToWalk = []string{"file.cpp"}
+	handler.On("WalkDir", options.Path, mock.Anything).Return(nil).Once()
+
+	// ReadFile should return the license
+	handler.On("ReadFile", "license.txt").Return([]byte(testTargetLicenseHeader), nil).Once()
+
+	// ReadFile should return error while reading the file
+	handler.On("ReadFile", "file.cpp").Return([]byte{}, errors.New("error")).Once()
+
+	// Assert that Files will return nil and operation will be OperationError
+	stats, err := Files(options, handler)
+	assert.Nil(t, err)
+	assert.True(t, len(stats.Files[OperationError]) == 1)
+
+	handler.AssertExpectations(t)
+}
+
+func TestFiles_ErrorSentByWalk(t *testing.T) {
+	handler := new(ioHandlerStub)
+	options := &Options{
+		Add:         true,
+		Replace:     true,
+		Path:        "source",
+		LicensePath: "license.txt",
+		Extensions:  []string{".cpp"},
+		IgnorePaths: []string{"ignore"},
+	}
+
+	// Prepare mock ioHandler to return an error on WalkDir
+	handler.On("WalkDir", options.Path, mock.Anything).Return(nil).Once()
+	handler.pathsToWalk = []string{"some_file.cpp"}
+	handler.errorWalkingPath = true
+
+	// ReadFile should return the license
+	handler.On("ReadFile", "license.txt").Return([]byte(testTargetLicenseHeader), nil).Once()
+
+	stats, err := Files(options, handler)
+	assert.Nil(t, err)
+	assert.True(t, len(stats.Files[OperationError]) == 1)
+
+	handler.AssertExpectations(t)
+}
+
+func TestFiles_DoesNotCountDir(t *testing.T) {
 	handler := new(ioHandlerStub)
 	options := &Options{
 		Add:         true,
@@ -222,45 +292,15 @@ func TestFilesDoesNotCountDir(t *testing.T) {
 	handler.pathsToWalk = []string{"file_no_license.cpp"}
 	handler.isDir = true
 
+	// ReadFile should return the license
+	handler.On("ReadFile", "license.txt").Return([]byte(testTargetLicenseHeader), nil).Once()
+
+	// Prepare mock ioHandler to return an error on WalkDir
+	handler.On("WalkDir", options.Path, mock.Anything).Return(nil).Once()
+
 	stats, err := Files(options, handler)
 	assert.Nil(t, err)
 	assert.True(t, len(stats.Files[LicenseAdded]) == 0)
-}
 
-func TestFilesErrorReadingFile(t *testing.T) {
-
-	handler := new(ioHandlerStub)
-	options := &Options{
-		Add:         true,
-		Replace:     true,
-		Path:        "source",
-		LicensePath: "license.txt",
-		Extensions:  []string{".cpp"},
-		IgnorePaths: []string{"ignore"},
-	}
-
-	handler.pathsToWalk = []string{"file_does_not_exist.cpp"}
-
-	stats, err := Files(options, handler)
-	assert.Nil(t, err)
-	assert.True(t, len(stats.Files[OperationError]) == 1)
-}
-
-func TestFilesErrorSentByWalk(t *testing.T) {
-	handler := new(ioHandlerStub)
-	options := &Options{
-		Add:         true,
-		Replace:     true,
-		Path:        "source",
-		LicensePath: "license.txt",
-		Extensions:  []string{".cpp"},
-		IgnorePaths: []string{"ignore"},
-	}
-
-	handler.pathsToWalk = []string{"file_no_license.cpp"}
-	handler.errorWalkingPath = true
-
-	stats, err := Files(options, handler)
-	assert.Nil(t, err)
-	assert.True(t, len(stats.Files[OperationError]) == 1)
+	handler.AssertExpectations(t)
 }

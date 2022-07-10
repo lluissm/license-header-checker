@@ -35,17 +35,21 @@ import (
 var version string = "development"
 
 func main() {
+
 	options, err := options.Parse(os.Args)
 	if err != nil {
 		log.Fatalf("could not parse the cli args: %s", err.Error())
 	}
+
 	if options.ShowVersion {
 		fmt.Printf("version: %s\n", version)
 		os.Exit(0)
 	}
+
 	stats, err := process.Files(options.Process, new(ioHandler))
 	if err != nil {
 		log.Fatalf("could not process the files: %s", err.Error())
 	}
+
 	printStats(options, stats)
 }
