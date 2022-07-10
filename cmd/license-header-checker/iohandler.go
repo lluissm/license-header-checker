@@ -34,21 +34,21 @@ import (
 // ioHandler implements the ioHandle interface defined in the process package
 type ioHandler struct{}
 
-func (s *ioHandler) ReadFile(filename string) ([]byte, error) {
-	return ioutil.ReadFile(filename)
+func (s *ioHandler) ReadFile(name string) ([]byte, error) {
+	return ioutil.ReadFile(name)
 }
 
 func (s *ioHandler) Walk(path string, walkFn filepath.WalkFunc) error {
 	return filepath.Walk(path, walkFn)
 }
 
-func (s *ioHandler) ReplaceFileContent(path string, content string) error {
-	err := os.Remove(path)
+func (s *ioHandler) ReplaceFileContent(name string, content string) error {
+	err := os.Remove(name)
 	if err != nil {
 		return fmt.Errorf("failed deleting the file: %w", err)
 	}
 
-	file, err := os.OpenFile(path, os.O_CREATE|os.O_WRONLY, 0600)
+	file, err := os.OpenFile(name, os.O_CREATE|os.O_WRONLY, 0600)
 	if err != nil {
 		return fmt.Errorf("failed opening file: %w", err)
 	}

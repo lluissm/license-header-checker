@@ -66,10 +66,15 @@ const (
 	OperationError
 )
 
+// ioHandle defines the interface to manage files during processing
 type ioHandle interface {
-	ReadFile(string) ([]byte, error)
-	Walk(string, filepath.WalkFunc) error
-	ReplaceFileContent(path string, content string) error
+	// ReadFile returns the content of a file given its name
+	ReadFile(name string) ([]byte, error)
+	// Walk walks the file tree rooted at root, calling fn for each file or directory in the tree,
+	// including root.
+	Walk(path string, walkFn filepath.WalkFunc) error
+	// ReplaceFileContent replaces the content of the file with the one provided
+	ReplaceFileContent(name string, content string) error
 }
 
 // File processes one file
