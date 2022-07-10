@@ -64,7 +64,7 @@ build-all: install-tools
 # Generate tag and push to origin
 define release
 RELEASE=$(shell ${TOOLS}/bin/svu $1); \
-git tag $$RELEASE
+git tag $$RELEASE; \
 git push origin $$RELEASE
 endef
 
