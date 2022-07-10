@@ -24,8 +24,7 @@ SOFTWARE.
 package process
 
 import (
-	"os"
-	"path/filepath"
+	"io/fs"
 	"strings"
 	"time"
 )
@@ -52,9 +51,11 @@ type (
 )
 
 const (
-	// SkippedAdd means that the file had no license but the new one was not added. Missing -a flasg
+	// SkippedAdd means that the file had no license but the new one was not added.
+	// as the -a flag was not provided
 	SkippedAdd Action = iota
-	// SkippedReplace means that the file had a different license but it was not replaced with the target one. Missing -r flag
+	// SkippedReplace means that the file had a different license but it was not
+	// replaced with the target one as the -r flag was not provided
 	SkippedReplace
 	// LicenseOk means that the license was OK so the file was not changed
 	LicenseOk
@@ -70,9 +71,8 @@ const (
 type ioHandle interface {
 	// ReadFile returns the content of a file given its name
 	ReadFile(name string) ([]byte, error)
-	// Walk walks the file tree rooted at root, calling fn for each file or directory in the tree,
-	// including root.
-	Walk(path string, walkFn filepath.WalkFunc) error
+	// WalkDir will call WalkDirFunc for every file in a directory
+	WalkDir(path string, walkDirFn fs.WalkDirFunc) error
 	// ReplaceFileContent replaces the content of the file with the one provided
 	ReplaceFileContent(name string, content string) error
 }
@@ -105,7 +105,8 @@ func File(path string, content string, license string, options *Options, ioHandl
 	return SkippedAdd
 }
 
-// Files processes a group of files as defined in options
+// Files processes a group of files (in parallel) following the configuration
+// defined in options
 func Files(options *Options, ioHandler ioHandle) (*Stats, error) {
 
 	data, err := ioHandler.ReadFile(options.LicensePath)
@@ -119,8 +120,8 @@ func Files(options *Options, ioHandler ioHandle) (*Stats, error) {
 	stats := NewStats()
 	files := 0
 
-	err = ioHandler.Walk(options.Path, func(path string, info os.FileInfo, err error) error {
-		if processFile(channel, options, license, ioHandler, path, info, err) {
+	err = ioHandler.WalkDir(options.Path, func(path string, d fs.DirEntry, err error) error {
+		if processFile(channel, options, license, ioHandler, path, d, err) {
 			files++
 		}
 		return nil
@@ -135,14 +136,16 @@ func Files(options *Options, ioHandler ioHandle) (*Stats, error) {
 	return stats, err
 }
 
-func processFile(channel chan *Operation, options *Options, license string, ioHandler ioHandle, path string, info os.FileInfo, err error) bool {
+func processFile(channel chan *Operation, options *Options, license string, ioHandler ioHandle, path string, d fs.DirEntry, err error) bool {
 
-	if info.IsDir() {
+	if d.IsDir() {
 		return false
 	}
+
 	if shouldIgnorePath(path, options.IgnorePaths) {
 		return false
 	}
+
 	if shouldIgnoreExtension(path, options.Extensions) {
 		return false
 	}

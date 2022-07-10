@@ -25,25 +25,22 @@ package process
 
 import (
 	"errors"
+	"io/fs"
 	"os"
-	"path/filepath"
 	"testing"
-	"time"
 
 	"github.com/stretchr/testify/assert"
 )
 
 // fileInfoStub implements os.FileInfo
-type fileInfoStub struct {
+type dirEntryStub struct {
 	isDir bool
 }
 
-func (f *fileInfoStub) Name() string       { return "name" }
-func (f *fileInfoStub) Size() int64        { return int64(0) }
-func (f *fileInfoStub) Mode() os.FileMode  { return 0 }
-func (f *fileInfoStub) ModTime() time.Time { return time.Now() }
-func (f *fileInfoStub) IsDir() bool        { return f.isDir }
-func (f *fileInfoStub) Sys() interface{}   { return "sys" }
+func (d *dirEntryStub) Name() string               { return "name" }
+func (d *dirEntryStub) IsDir() bool                { return d.isDir }
+func (d *dirEntryStub) Type() os.FileMode          { return 0 }
+func (d *dirEntryStub) Info() (os.FileInfo, error) { return nil, nil }
 
 type ioHandlerStub struct {
 	pathsToWalk               []string
@@ -74,16 +71,16 @@ func (s *ioHandlerStub) ReadFile(filename string) ([]byte, error) {
 	}
 }
 
-func (s *ioHandlerStub) Walk(path string, walkFn filepath.WalkFunc) error {
-	fileInfo := new(fileInfoStub)
+func (s *ioHandlerStub) WalkDir(path string, walkDirFn fs.WalkDirFunc) error {
+	fileInfo := new(dirEntryStub)
 	fileInfo.isDir = s.isDir
 	for _, path := range s.pathsToWalk {
 		if s.errorWalkingPath {
-			if err := walkFn(path, fileInfo, errors.New("error")); err != nil {
+			if err := walkDirFn(path, fileInfo, errors.New("error")); err != nil {
 				return err
 			}
 		} else {
-			if err := walkFn(path, fileInfo, nil); err != nil {
+			if err := walkDirFn(path, fileInfo, nil); err != nil {
 				return err
 			}
 		}
