@@ -31,7 +31,7 @@ import (
 	"path/filepath"
 )
 
-// ioHandler handles all necessary io operations
+// ioHandler implements the ioHandle interface defined in the process package
 type ioHandler struct{}
 
 func (s *ioHandler) ReadFile(filename string) ([]byte, error) {
