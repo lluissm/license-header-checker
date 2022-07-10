@@ -31,20 +31,20 @@ import (
 )
 
 func TestContainsLicenseHeader(t *testing.T) {
-	assert.True(t, containsLicenseHeader(fakeFileWithTargetLicenseHeader))
-	assert.True(t, containsLicenseHeader(fakeFileWithDifferentLicenseHeader))
-	assert.False(t, containsLicenseHeader(fakeFileWithoutLicense))
+	assert.True(t, containsLicenseHeader(testFileWithTargetLicense))
+	assert.True(t, containsLicenseHeader(testFileWithDifferentLicense))
+	assert.False(t, containsLicenseHeader(testFileWithoutLicense))
 }
 
 func TestExtractHeader(t *testing.T) {
-	expected := strings.TrimSpace(fakeTargetLicenseHeader)
+	expected := strings.TrimSpace(testTargetLicenseHeader)
 
-	input := fakeFileWithTargetLicenseHeader
+	input := testFileWithTargetLicense
 	output := extractHeader(input)
 	assert.True(t, output == expected)
 
 	// Check that build tags are not included in the extracted header
-	input = fakeFileWithTargetLicenseHeaderAndBuildTag
+	input = testFileWithBuildTagsAndTargetLicense
 	output = extractHeader(input)
 	assert.True(t, output == expected)
 
@@ -55,24 +55,24 @@ func TestExtractHeader(t *testing.T) {
 }
 
 func TestInsertHeader(t *testing.T) {
-	expected := fakeFileWithTargetLicenseHeader
-	input := fakeFileWithoutLicense
-	header := fakeTargetLicenseHeader
+	expected := testFileWithTargetLicense
+	input := testFileWithoutLicense
+	header := testTargetLicenseHeader
 	output := insertHeader(input, header)
 	assert.True(t, output == expected)
 }
 
 func TestReplaceHeader(t *testing.T) {
-	header := fakeTargetLicenseHeader
+	header := testTargetLicenseHeader
 
-	expected := fakeFileWithTargetLicenseHeader
-	input := fakeFileWithDifferentLicenseHeader
+	expected := testFileWithTargetLicense
+	input := testFileWithDifferentLicense
 	output := replaceHeader(input, header)
 	assert.True(t, output == expected)
 
 	// Check that build tags are not removed after replacing license
-	expected = fakeFileWithTargetLicenseHeaderAndBuildTag
-	input = fakeFileWithDifferentLicenseHeaderAndBuildTag
+	expected = testFileWithBuildTagsAndTargetLicense
+	input = testFileWithBuildTagsAndDifferentLicense
 	output = replaceHeader(input, header)
 	assert.True(t, output == expected)
 }

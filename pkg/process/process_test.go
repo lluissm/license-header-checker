@@ -62,13 +62,13 @@ func (s *ioHandlerStub) ReplaceFileContent(filePath string, fileContent string) 
 func (s *ioHandlerStub) ReadFile(filename string) ([]byte, error) {
 	switch filename {
 	case "license.txt":
-		return []byte(fakeTargetLicenseHeader), nil
+		return []byte(testTargetLicenseHeader), nil
 	case "file_no_license.cpp":
-		return []byte(fakeFileWithoutLicense), nil
+		return []byte(testFileWithoutLicense), nil
 	case "file_good_license.cpp":
-		return []byte(fakeFileWithTargetLicenseHeader), nil
+		return []byte(testFileWithTargetLicense), nil
 	case "file_old_license.cpp":
-		return []byte(fakeFileWithDifferentLicenseHeader), nil
+		return []byte(testFileWithDifferentLicense), nil
 	default:
 		return nil, errors.New("file does not exist")
 	}
@@ -93,8 +93,8 @@ func (s *ioHandlerStub) Walk(path string, walkFn filepath.WalkFunc) error {
 
 func TestFileLicenseOk(t *testing.T) {
 	filePath := "main.cpp"
-	license := fakeTargetLicenseHeader
-	fileContent := fakeFileWithTargetLicenseHeader
+	license := testTargetLicenseHeader
+	fileContent := testFileWithTargetLicense
 	handler := new(ioHandlerStub)
 	options := &Options{
 		Add:         true,
@@ -111,8 +111,8 @@ func TestFileLicenseOk(t *testing.T) {
 
 func TestFileAddLicense(t *testing.T) {
 	filePath := "main.cpp"
-	license := fakeTargetLicenseHeader
-	fileContent := fakeFileWithoutLicense
+	license := testTargetLicenseHeader
+	fileContent := testFileWithoutLicense
 	handler := new(ioHandlerStub)
 	options := &Options{
 		Add:         true,
@@ -139,8 +139,8 @@ func TestFileAddLicense(t *testing.T) {
 
 func TestFileReplaceLicense(t *testing.T) {
 	filePath := "main.cpp"
-	license := fakeTargetLicenseHeader
-	fileContent := fakeFileWithDifferentLicenseHeader
+	license := testTargetLicenseHeader
+	fileContent := testFileWithDifferentLicense
 	handler := new(ioHandlerStub)
 	options := &Options{
 		Add:         true,
