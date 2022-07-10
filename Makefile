@@ -59,7 +59,7 @@ lint:
 # --rm-dist: Remove the dist folder before building
 # --snapshot: Generate an unversioned snapshot build, skipping all validations
 # --single-target: Builds only for current GOOS and GOARCH
-build-ci: install-tools
+build-all: install-tools
 	${TOOLS}/bin/goreleaser release --snapshot --rm-dist --single-target
 
 # Generate tag and push to origin
