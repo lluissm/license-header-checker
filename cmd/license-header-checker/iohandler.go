@@ -26,6 +26,7 @@ package main
 import (
 	"bufio"
 	"fmt"
+	"io/fs"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -38,8 +39,8 @@ func (s *ioHandler) ReadFile(name string) ([]byte, error) {
 	return ioutil.ReadFile(name)
 }
 
-func (s *ioHandler) Walk(path string, walkFn filepath.WalkFunc) error {
-	return filepath.Walk(path, walkFn)
+func (s *ioHandler) WalkDir(path string, walkDirFn fs.WalkDirFunc) error {
+	return filepath.WalkDir(path, walkDirFn)
 }
 
 func (s *ioHandler) ReplaceFileContent(name string, content string) error {
