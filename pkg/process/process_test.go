@@ -30,18 +30,23 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
 )
 
-// fileInfoStub implements os.FileInfo
+// dirEntryStub mocks fs.DirEntry
 type dirEntryStub struct {
-	isDir bool
+	mock.Mock
 }
 
-func (d *dirEntryStub) Name() string               { return "name" }
-func (d *dirEntryStub) IsDir() bool                { return d.isDir }
+func (d *dirEntryStub) IsDir() bool {
+	args := d.Called()
+	return args.Get(0).(bool)
+}
+func (d *dirEntryStub) Name() string               { return "" }
 func (d *dirEntryStub) Type() os.FileMode          { return 0 }
 func (d *dirEntryStub) Info() (os.FileInfo, error) { return nil, nil }
 
+// ioHandlerStub mocks ioHandle
 type ioHandlerStub struct {
 	pathsToWalk               []string
 	isDir                     bool
@@ -72,15 +77,15 @@ func (s *ioHandlerStub) ReadFile(filename string) ([]byte, error) {
 }
 
 func (s *ioHandlerStub) WalkDir(path string, walkDirFn fs.WalkDirFunc) error {
-	fileInfo := new(dirEntryStub)
-	fileInfo.isDir = s.isDir
+	dirEntry := &dirEntryStub{}
+	dirEntry.On("IsDir").Return(s.isDir)
 	for _, path := range s.pathsToWalk {
 		if s.errorWalkingPath {
-			if err := walkDirFn(path, fileInfo, errors.New("error")); err != nil {
+			if err := walkDirFn(path, dirEntry, errors.New("error")); err != nil {
 				return err
 			}
 		} else {
-			if err := walkDirFn(path, fileInfo, nil); err != nil {
+			if err := walkDirFn(path, dirEntry, nil); err != nil {
 				return err
 			}
 		}
