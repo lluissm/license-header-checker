@@ -16,3 +16,5 @@ jobs:
         run: make test
       - name: Test end to end
         run: make test-e2e
+      - name: Build with goreleaser
+        run: make build-ci
