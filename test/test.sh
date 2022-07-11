@@ -38,12 +38,12 @@ run_test() {
 	ARGS="${PROJECT_DIR}/licenses/current-license.txt ${PROJECT_DIR} java js cpp go"
 	delete_sample_project
 	extract_sample_project
-	echo -e "\n$3"
-	remove_ansi_color "$($1 $2 $ARGS)" res
-	eval "$4=\"${res}\""
+	echo -e "\n$2"
+	remove_ansi_color "$($CMD $1 $ARGS)" res
+	eval "$3=\"${res}\""
 }
 
-run_test $CMD '-version' 'Testing version...' result
+run_test '-version' 'Testing version...' result
 
 if [[ $result =~ $'version:' ]]; then
 	on_success
@@ -51,7 +51,7 @@ else
 	on_failure
 fi
 
-run_test $CMD '' 'Testing read only...' result
+run_test '' 'Testing read only...' result
 
 if [[ $result =~ $'1 licenses ok, 0 licenses replaced, 0 licenses added' && \
 	$result =~ $'2 files had no license' && \
@@ -61,7 +61,7 @@ else
 	on_failure
 fi
 
-run_test $CMD '-a' 'Testing with -a flag...' result
+run_test '-a' 'Testing with -a flag...' result
 
 if [[ $result =~ $'1 licenses ok, 0 licenses replaced, 2 licenses added' && \
 	$result =~ $'2 files had a different license' ]]; then
@@ -70,7 +70,7 @@ else
 	on_failure
 fi
 
-run_test $CMD '-a -r' 'Testing with -a and -r flags...' result
+run_test '-a -r' 'Testing with -a and -r flags...' result
 
 if [[ $result =~ $'1 licenses ok, 2 licenses replaced, 2 licenses added' ]]; then
 	on_success
@@ -78,7 +78,7 @@ else
 	on_failure
 fi
 
-run_test $CMD '-a -r -i src/other' 'Testing with -a and -r and -i flags...' result
+run_test '-a -r -i src/other' 'Testing with -a and -r and -i flags...' result
 
 if [[ $result =~ $'1 licenses ok, 2 licenses replaced, 1 licenses added' ]]; then
 	on_success
@@ -86,7 +86,7 @@ else
 	on_failure
 fi
 
-run_test $CMD '-a -r -v -i src/other' 'Testing with -a and -r and -i and -v flags...' result
+run_test '-a -r -v -i src/other' 'Testing with -a and -r and -i and -v flags...' result
 
 if [[ $result =~ $'license_ok: 1 files' && \
 	$result =~ $'license_replaced: 2 files' && \
