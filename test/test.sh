@@ -8,11 +8,9 @@ errors=0
 
 remove_ansi_color() {
 	if [[ "$(uname)" == "Darwin" ]]; then
-		output=$(echo $1 | sed $'s,\x1b\\[[0-9;]*[a-zA-Z],,g')
-		eval "$2=\"${output}\""
+		echo $(echo $1 | sed $'s,\x1b\\[[0-9;]*[a-zA-Z],,g')
 	else
-		output=$(echo $1 | sed -r "s/[[:cntrl:]]\[[0-9]{1,3}m//g")
-		eval "$2=\"${output}\""
+		echo $(echo $1 | sed -r "s/[[:cntrl:]]\[[0-9]{1,3}m//g")
 	fi
 }
 
@@ -39,7 +37,7 @@ run_test() {
 	delete_sample_project
 	extract_sample_project
 	echo -e "\n$2"
-	remove_ansi_color "$($CMD $1 $ARGS)" res
+	res=$(remove_ansi_color "$($CMD $1 $ARGS)")
 	eval "$3=\"${res}\""
 }
 
