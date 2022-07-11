@@ -24,46 +24,22 @@ SOFTWARE.
 package main
 
 import (
-	"bufio"
-	"fmt"
 	"io/fs"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 )
 
-// ioHandler implements the ioHandle interface defined in the process package
-type ioHandler struct{}
+// fsHandler implements the fileHandler interface defined in the process package
+type fsHandler struct{}
 
-func (s *ioHandler) ReadFile(name string) ([]byte, error) {
-	return ioutil.ReadFile(name)
+func (f *fsHandler) ReadFile(name string) ([]byte, error) {
+	return os.ReadFile(name)
 }
 
-func (s *ioHandler) WalkDir(path string, walkDirFn fs.WalkDirFunc) error {
-	return filepath.WalkDir(path, walkDirFn)
+func (f *fsHandler) WalkDir(path string, fn fs.WalkDirFunc) error {
+	return filepath.WalkDir(path, fn)
 }
 
-func (s *ioHandler) ReplaceFileContent(name string, content string) error {
-	err := os.Remove(name)
-	if err != nil {
-		return fmt.Errorf("failed deleting the file: %w", err)
-	}
-
-	file, err := os.OpenFile(name, os.O_CREATE|os.O_WRONLY, 0600)
-	if err != nil {
-		return fmt.Errorf("failed opening file: %w", err)
-	}
-	defer file.Close()
-
-	writer := bufio.NewWriter(file)
-	_, err = writer.WriteString(content)
-	if err != nil {
-		return fmt.Errorf("failed writing to file: %w", err)
-	}
-
-	if err = writer.Flush(); err != nil {
-		return fmt.Errorf("failed writing to file: %w", err)
-	}
-
-	return nil
+func (f *fsHandler) WriteFile(name string, content []byte) error {
+	return os.WriteFile(name, content, 0)
 }
