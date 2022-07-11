@@ -65,44 +65,44 @@ run_test() {
 # version
 flags="-version"
 test_case="Testing version..."
-expected_res="version:"
-run_test "${flags}" "${test_case}" "$expected_res"
+expected_output="version:"
+run_test "${flags}" "${test_case}" "$expected_output"
 
 # read only
 flags=''
 test_case='Testing read only...'
-expected_res="1 licenses ok, 0 licenses replaced, 0 licenses added \
+expected_output="1 licenses ok, 0 licenses replaced, 0 licenses added \
 [!] 2 files had no license but were not changed as the -a (add) option was not supplied. \
 [!] 2 files had a different license but were not changed as the -r (replace) option was not supplied."
-run_test "$flags" "$test_case" "$expected_res"
+run_test "$flags" "$test_case" "$expected_output"
 
 # add
 flags='-a'
 test_case='Testing with -a flag...'
-expected_res="1 licenses ok, 0 licenses replaced, 2 licenses added \
+expected_output="1 licenses ok, 0 licenses replaced, 2 licenses added \
 [!] 2 files had a different license but were not changed as the -r (replace) option was not supplied."
-run_test "$flags" "$test_case" "$expected_res"
+run_test "$flags" "$test_case" "$expected_output"
 
 # add and replace
 flags='-a -r'
 test_case='Testing with -a and -r flags...'
-expected_res="1 licenses ok, 2 licenses replaced, 2 licenses added"
-run_test "$flags" "$test_case" "$expected_res"
+expected_output="1 licenses ok, 2 licenses replaced, 2 licenses added"
+run_test "$flags" "$test_case" "$expected_output"
 
 # add and replace (with ignore)
 flags='-a -r -i src/other'
 test_case='Testing with -a and -r and -i flags...'
-expected_res="1 licenses ok, 2 licenses replaced, 1 licenses added"
-run_test "$flags" "$test_case" "$expected_res"
+expected_output="1 licenses ok, 2 licenses replaced, 1 licenses added"
+run_test "$flags" "$test_case" "$expected_output"
 
 # add and replace with ignore (and verbose)
 flags='-a -r -v -i src/other'
 test_case='Testing with -a and -r and -i and -v flags...'
-expected_res="\
+expected_output="\
 files: license_ok: - sample-project/src/file-with-license.js license_replaced: - sample-project/test/file-with-old-license.go - sample-project/src/file-with-old-license.cpp license_added: - sample-project/src/file-without-license.java \
 options: project_path: sample-project ignore_paths: - src/other extensions: - .java - .js - .cpp - .go flags: - add - replace - verbose license_header: %ssample-project/licenses/current-license.txt \
 totals: license_ok: 1 files license_replaced: 2 files license_added: 1 files elapsed_time: 0ms"
-run_test "$flags" "$test_case" "$expected_res"
+run_test "$flags" "$test_case" "$expected_output"
 
 delete_sample_project
 
