@@ -1,18 +1,23 @@
 #!/bin/bash
 
+# Test config
 CMD="$1"
+PROJECT_DIR=sample-project
+CMD_ARGS="${PROJECT_DIR}/licenses/current-license.txt ${PROJECT_DIR} java js cpp go"
+
+# Test results
+errors=0
+
+# Colors
 RED='\033[0;31m'
 GREEN='\033[32m'
 NC='\033[0m'
-errors=0
 
 remove_ansi_color() {
 	if [[ "$(uname)" == "Darwin" ]]; then
-		output=$(echo $1 | sed $'s,\x1b\\[[0-9;]*[a-zA-Z],,g')
-		eval "$2=\"${output}\""
+		echo $(echo $1 | sed $'s,\x1b\\[[0-9;]*[a-zA-Z],,g')
 	else
-		output=$(echo $1 | sed -r "s/[[:cntrl:]]\[[0-9]{1,3}m//g")
-		eval "$2=\"${output}\""
+		echo $(echo $1 | sed -r "s/\x1B\[([0-9]{1,3}(;[0-9]{1,2})?)?[mGK]//g")
 	fi
 }
 
@@ -34,72 +39,75 @@ on_failure() {
 }
 
 run_test() {
-	PROJECT_DIR=sample-project
-	ARGS="${PROJECT_DIR}/licenses/current-license.txt ${PROJECT_DIR} java js cpp go"
+	flags=$1
+	expected=$3
+
+	# extract sample project
 	delete_sample_project
 	extract_sample_project
-	echo -e "\n$3"
-	remove_ansi_color "$($1 $2 $ARGS)" res
-	eval "$4=\"${res}\""
+
+	# print test case
+	echo -e "\n$2"
+
+	# execute license-header-checker and remove colors
+	output=$(remove_ansi_color "$($CMD $flags $CMD_ARGS)")
+
+	# verify result
+	if [[ "$output" =~ "$expected" ]]; then
+		on_success
+	else
+		on_failure
+	fi
 }
 
-run_test $CMD '-version' 'Testing version...' result
+# Test cases
 
-if [[ $result =~ $'version:' ]]; then
-	on_success
-else
-	on_failure
-fi
+# version
+flags="-version"
+test_case="Testing version..."
+expected_output="version:"
+run_test "${flags}" "${test_case}" "$expected_output"
 
-run_test $CMD '' 'Testing read only...' result
+# read only
+flags=''
+test_case='Testing read only...'
+expected_output="1 licenses ok, 0 licenses replaced, 0 licenses added \
+[!] 2 files had no license but were not changed as the -a (add) option was not supplied. \
+[!] 2 files had a different license but were not changed as the -r (replace) option was not supplied."
+run_test "$flags" "$test_case" "$expected_output"
 
-if [[ $result =~ $'1 licenses ok, 0 licenses replaced, 0 licenses added' && \
-	$result =~ $'2 files had no license' && \
-	$result =~ $'2 files had a different license' ]]; then
-	on_success
-else
-	on_failure
-fi
+# add
+flags='-a'
+test_case='Testing with -a flag...'
+expected_output="1 licenses ok, 0 licenses replaced, 2 licenses added \
+[!] 2 files had a different license but were not changed as the -r (replace) option was not supplied."
+run_test "$flags" "$test_case" "$expected_output"
 
-run_test $CMD '-a' 'Testing with -a flag...' result
+# add and replace
+flags='-a -r'
+test_case='Testing with -a and -r flags...'
+expected_output="1 licenses ok, 2 licenses replaced, 2 licenses added"
+run_test "$flags" "$test_case" "$expected_output"
 
-if [[ $result =~ $'1 licenses ok, 0 licenses replaced, 2 licenses added' && \
-	$result =~ $'2 files had a different license' ]]; then
-	on_success
-else
-	on_failure
-fi
+# add and replace (with ignore)
+flags='-a -r -i src/other'
+test_case='Testing with -a and -r and -i flags...'
+expected_output="1 licenses ok, 2 licenses replaced, 1 licenses added"
+run_test "$flags" "$test_case" "$expected_output"
 
-run_test $CMD '-a -r' 'Testing with -a and -r flags...' result
-
-if [[ $result =~ $'1 licenses ok, 2 licenses replaced, 2 licenses added' ]]; then
-	on_success
-else
-	on_failure
-fi
-
-run_test $CMD '-a -r -i src/other' 'Testing with -a and -r and -i flags...' result
-
-if [[ $result =~ $'1 licenses ok, 2 licenses replaced, 1 licenses added' ]]; then
-	on_success
-else
-	on_failure
-fi
-
-run_test $CMD '-a -r -v -i src/other' 'Testing with -a and -r and -i and -v flags...' result
-
-if [[ $result =~ $'license_ok: 1 files' && \
-	$result =~ $'license_replaced: 2 files' && \
-	$result =~ $'license_added: 1 files' && \
-	$result =~ $'elapsed_time:' ]]; then
-	on_success
-else
-	on_failure
-fi
+# add and replace with ignore (and verbose)
+flags='-a -r -v -i src/other'
+test_case='Testing with -a and -r and -i and -v flags...'
+expected_output="\
+files: license_ok: - sample-project/src/file-with-license.js license_replaced: - sample-project/test/file-with-old-license.go - sample-project/src/file-with-old-license.cpp license_added: - sample-project/src/file-without-license.java \
+options: project_path: sample-project ignore_paths: - src/other extensions: - .java - .js - .cpp - .go flags: - add - replace - verbose license_header: %ssample-project/licenses/current-license.txt \
+totals: license_ok: 1 files license_replaced: 2 files license_added: 1 files elapsed_time: 0ms"
+run_test "$flags" "$test_case" "$expected_output"
 
 delete_sample_project
 
 if (($errors > 0)); then
 	exit 1
 fi
+
 exit 0
