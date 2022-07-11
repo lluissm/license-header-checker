@@ -42,7 +42,7 @@ var (
 // to the verbosity level
 func printStats(options *options.Options, stats *process.Stats) {
 	if options.Verbose {
-		printFiles(stats)
+		printFileOperations(stats)
 		printOptions(options)
 		printTotals(stats)
 	} else {
@@ -59,45 +59,25 @@ func printShort(stats *process.Stats) {
 		errorRender(fmt.Sprintf("%d", len(stats.Files[process.LicenseAdded]))))
 }
 
-// printFiles prints the the output of each file grouped by the result type
-func printFiles(stats *process.Stats) {
+func printFiles(files []string, operationName string, render func(a ...interface{}) string) {
+	if len(files) <= 0 {
+		return
+	}
+	fmt.Printf("  %s:\n", operationName)
+	for _, file := range files {
+		fmt.Printf("    - %s\n", render(fmt.Sprintf("%v", file)))
+	}
+}
+
+// printFileOperations prints the the output of each file grouped by the result type
+func printFileOperations(stats *process.Stats) {
 	fmt.Printf("files:\n")
-	if licensesOk := stats.Files[process.LicenseOk]; len(licensesOk) > 0 {
-		fmt.Printf("  license_ok:\n")
-		for _, file := range licensesOk {
-			fmt.Printf("    - %s\n", okRender(fmt.Sprintf("%v", file)))
-		}
-	}
-	if licensesReplaced := stats.Files[process.LicenseReplaced]; len(licensesReplaced) > 0 {
-		fmt.Printf("  license_replaced:\n")
-		for _, file := range licensesReplaced {
-			fmt.Printf("    - %s\n", warningRender(fmt.Sprintf("%v", file)))
-		}
-	}
-	if licensesAdded := stats.Files[process.LicenseAdded]; len(licensesAdded) > 0 {
-		fmt.Printf("  license_added:\n")
-		for _, file := range licensesAdded {
-			fmt.Printf("    - %s\n", errorRender(fmt.Sprintf("%v", file)))
-		}
-	}
-	if skippedAdds := stats.Files[process.SkippedAdd]; len(skippedAdds) > 0 {
-		fmt.Printf("  skipped_add:\n")
-		for _, file := range skippedAdds {
-			fmt.Printf("    - %s\n", errorRender(fmt.Sprintf("%v", file)))
-		}
-	}
-	if skippedReplaces := stats.Files[process.SkippedReplace]; len(skippedReplaces) > 0 {
-		fmt.Printf("  skipped_replace:\n")
-		for _, file := range skippedReplaces {
-			fmt.Printf("    - %s\n", errorRender(fmt.Sprintf("%v", file)))
-		}
-	}
-	if errors := stats.Files[process.OperationError]; len(errors) > 0 {
-		fmt.Printf("  errors:\n")
-		for _, file := range errors {
-			fmt.Printf("    - %s\n", errorRender(fmt.Sprintf("%v", file)))
-		}
-	}
+	printFiles(stats.Files[process.LicenseOk], "license_ok", okRender)
+	printFiles(stats.Files[process.LicenseReplaced], "license_replaced", warningRender)
+	printFiles(stats.Files[process.LicenseAdded], "license_added", errorRender)
+	printFiles(stats.Files[process.SkippedAdd], "skipped_add", errorRender)
+	printFiles(stats.Files[process.SkippedReplace], "skipped_replace", errorRender)
+	printFiles(stats.Files[process.OperationError], "errors", errorRender)
 }
 
 // printOptions prints the options that were supplied to the cli app
