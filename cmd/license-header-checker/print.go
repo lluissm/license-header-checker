@@ -51,25 +51,7 @@ func printStats(options *options.Options, stats *process.Stats) {
 	printWarnings(stats)
 }
 
-// printShort prints the result of the processing in a compact mode (non-verbose)
-func printShort(stats *process.Stats) {
-	fmt.Printf("%s licenses ok, %s licenses replaced, %s licenses added\n",
-		okRender(fmt.Sprintf("%d", len(stats.Files[process.LicenseOk]))),
-		warningRender(fmt.Sprintf("%d", len(stats.Files[process.LicenseReplaced]))),
-		errorRender(fmt.Sprintf("%d", len(stats.Files[process.LicenseAdded]))))
-}
-
-func printFiles(files []string, operationName string, render func(a ...interface{}) string) {
-	if len(files) <= 0 {
-		return
-	}
-	fmt.Printf("  %s:\n", operationName)
-	for _, file := range files {
-		fmt.Printf("    - %s\n", render(fmt.Sprintf("%v", file)))
-	}
-}
-
-// printFileOperations prints the the output of each file grouped by the result type
+// printFileOperations prints the the files processed by operation type
 func printFileOperations(stats *process.Stats) {
 	fmt.Printf("files:\n")
 	printFiles(stats.Files[process.LicenseOk], "license_ok", okRender)
@@ -80,7 +62,7 @@ func printFileOperations(stats *process.Stats) {
 	printFiles(stats.Files[process.OperationError], "errors", errorRender)
 }
 
-// printOptions prints the options that were supplied to the cli app
+// printOptions prints the options that were supplied to the app
 func printOptions(options *options.Options) {
 	fmt.Printf("options:\n")
 	fmt.Printf("  project_path: %s\n", infoRender(options.Process.Path))
@@ -107,32 +89,28 @@ func printOptions(options *options.Options) {
 	fmt.Printf("  license_header: %s\n", infoRender("%s", options.Process.LicensePath))
 }
 
-// printTotals prints the aggregated data
+// printTotals prints the total amount of files processed by operation type
 func printTotals(stats *process.Stats) {
 	fmt.Printf("totals:\n")
-	if licensesOk := len(stats.Files[process.LicenseOk]); licensesOk > 0 {
-		fmt.Printf("  license_ok: %s\n", okRender(fmt.Sprintf("%v files", licensesOk)))
-	}
-	if licensesReplaced := len(stats.Files[process.LicenseReplaced]); licensesReplaced > 0 {
-		fmt.Printf("  license_replaced: %s\n", warningRender(fmt.Sprintf("%v files", licensesReplaced)))
-	}
-	if licensesAdded := len(stats.Files[process.LicenseAdded]); licensesAdded > 0 {
-		fmt.Printf("  license_added: %s\n", errorRender(fmt.Sprintf("%v files", licensesAdded)))
-	}
-	if skippedAdds := len(stats.Files[process.SkippedAdd]); skippedAdds > 0 {
-		fmt.Printf("  skipped_add: %s\n", errorRender(fmt.Sprintf("%v files", skippedAdds)))
-	}
-	if skippedReplaces := len(stats.Files[process.SkippedReplace]); skippedReplaces > 0 {
-		fmt.Printf("  skipped_replace: %s\n", errorRender(fmt.Sprintf("%v files", skippedReplaces)))
-	}
-	if errors := len(stats.Files[process.OperationError]); errors > 0 {
-		fmt.Printf("  error: %s\n", errorRender(fmt.Sprintf("%v files", errors)))
-	}
+	printFileTotals(len(stats.Files[process.LicenseOk]), "license_ok", okRender)
+	printFileTotals(len(stats.Files[process.LicenseReplaced]), "license_replaced", warningRender)
+	printFileTotals(len(stats.Files[process.LicenseAdded]), "license_added", errorRender)
+	printFileTotals(len(stats.Files[process.SkippedAdd]), "skipped_add", errorRender)
+	printFileTotals(len(stats.Files[process.SkippedReplace]), "skipped_replace", errorRender)
+	printFileTotals(len(stats.Files[process.OperationError]), "error", errorRender)
 	fmt.Printf("  elapsed_time: %s\n", infoRender(fmt.Sprintf("%vms", stats.ElapsedMs)))
 }
 
-// printWarnings warns the user that the -a or -r flag were not provided
-// and they may have had been useful
+// printShort prints the result of the processing in a compact mode (non-verbose)
+func printShort(stats *process.Stats) {
+	fmt.Printf("%s licenses ok, %s licenses replaced, %s licenses added\n",
+		okRender(fmt.Sprintf("%d", len(stats.Files[process.LicenseOk]))),
+		warningRender(fmt.Sprintf("%d", len(stats.Files[process.LicenseReplaced]))),
+		errorRender(fmt.Sprintf("%d", len(stats.Files[process.LicenseAdded]))))
+}
+
+// printWarnings warns the user if the -a or -r flag were not provided
+// but they may have had been useful
 func printWarnings(stats *process.Stats) {
 	if skippedAdds := len(stats.Files[process.SkippedAdd]); skippedAdds > 0 {
 		color.Error.Printf("[!] %d files had no license but were not changed as the -a (add) option was not supplied.\n", skippedAdds)
@@ -143,4 +121,21 @@ func printWarnings(stats *process.Stats) {
 	if errors := len(stats.Files[process.OperationError]); errors > 0 {
 		color.Error.Printf("[!] There where %d errors.\n", errors)
 	}
+}
+
+func printFiles(files []string, operationName string, render func(a ...interface{}) string) {
+	if len(files) <= 0 {
+		return
+	}
+	fmt.Printf("  %s:\n", operationName)
+	for _, file := range files {
+		fmt.Printf("    - %s\n", render(fmt.Sprintf("%v", file)))
+	}
+}
+
+func printFileTotals(total int, operationName string, render func(a ...interface{}) string) {
+	if total <= 0 {
+		return
+	}
+	fmt.Printf("  %s: %s\n", operationName, render(fmt.Sprintf("%v files", total)))
 }
