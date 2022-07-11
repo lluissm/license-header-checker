@@ -46,7 +46,7 @@ func main() {
 		os.Exit(0)
 	}
 
-	stats, err := process.Files(options.Process, new(ioHandler))
+	stats, err := process.Files(options.Process, new(fsHandler))
 	if err != nil {
 		log.Fatalf("could not process the files: %s", err.Error())
 	}

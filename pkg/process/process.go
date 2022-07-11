@@ -67,18 +67,23 @@ const (
 	OperationError
 )
 
-// ioHandle defines the interface to manage files during processing
-type ioHandle interface {
-	// ReadFile returns the content of a file given its name
+// fileHandler defines the interface to manage files during processing
+type fileHandler interface {
+	// ReadFile reads the named file and returns the contents. A successful call returns
+	// err == nil, not err == EOF. Because ReadFile reads the whole file, it does not treat
+	// an EOF from Read as an error to be reported.
 	ReadFile(name string) ([]byte, error)
-	// WalkDir will call WalkDirFunc for every file in a directory
-	WalkDir(path string, walkDirFn fs.WalkDirFunc) error
-	// ReplaceFileContent replaces the content of the file with the one provided
-	ReplaceFileContent(name string, content string) error
+	// WalkDir walks the file tree rooted at root, calling fn for each file or
+	// directory in the tree, including root.
+	WalkDir(path string, fn fs.WalkDirFunc) error
+	// WriteFile writes data to a file named by filename. If the file does not exist,
+	// WriteFile creates it with permissions perm (before umask); otherwise WriteFile
+	// truncates it before writing, without changing permissions.
+	WriteFile(name string, content string) error
 }
 
 // File processes one file
-func File(path string, content string, license string, options *Options, ioHandler ioHandle) Action {
+func File(path string, content string, license string, options *Options, h fileHandler) Action {
 
 	if strings.Contains(content, strings.TrimSpace(license)) {
 		return LicenseOk
@@ -87,7 +92,7 @@ func File(path string, content string, license string, options *Options, ioHandl
 	if containsLicenseHeader(content) {
 		if options.Replace {
 			newContent := replaceHeader(content, license)
-			if err := ioHandler.ReplaceFileContent(path, newContent); err != nil {
+			if err := h.WriteFile(path, newContent); err != nil {
 				return OperationError
 			}
 			return LicenseReplaced
@@ -97,7 +102,7 @@ func File(path string, content string, license string, options *Options, ioHandl
 
 	if options.Add {
 		newContent := insertHeader(content, license)
-		if err := ioHandler.ReplaceFileContent(path, newContent); err != nil {
+		if err := h.WriteFile(path, newContent); err != nil {
 			return OperationError
 		}
 		return LicenseAdded
@@ -107,9 +112,9 @@ func File(path string, content string, license string, options *Options, ioHandl
 
 // Files processes a group of files (in parallel) following the configuration
 // defined in options
-func Files(options *Options, ioHandler ioHandle) (*Stats, error) {
+func Files(options *Options, h fileHandler) (*Stats, error) {
 
-	data, err := ioHandler.ReadFile(options.LicensePath)
+	data, err := h.ReadFile(options.LicensePath)
 	if err != nil {
 		return nil, err
 	}
@@ -120,8 +125,8 @@ func Files(options *Options, ioHandler ioHandle) (*Stats, error) {
 	stats := NewStats()
 	files := 0
 
-	err = ioHandler.WalkDir(options.Path, func(path string, d fs.DirEntry, err error) error {
-		if processFile(channel, options, license, ioHandler, path, d, err) {
+	err = h.WalkDir(options.Path, func(path string, d fs.DirEntry, err error) error {
+		if processFile(channel, options, license, h, path, d, err) {
 			files++
 		}
 		return nil
@@ -143,7 +148,7 @@ func Files(options *Options, ioHandler ioHandle) (*Stats, error) {
 //
 // The processing of the file is done on a goroutine, hence the channel to write the result of the
 // operation
-func processFile(channel chan *Operation, options *Options, license string, ioHandler ioHandle, path string, d fs.DirEntry, err error) bool {
+func processFile(channel chan *Operation, options *Options, license string, h fileHandler, path string, d fs.DirEntry, err error) bool {
 
 	if d.IsDir() {
 		return false
@@ -162,7 +167,7 @@ func processFile(channel chan *Operation, options *Options, license string, ioHa
 		return true
 	}
 
-	data, err := ioHandler.ReadFile(path)
+	data, err := h.ReadFile(path)
 	if err != nil {
 		onError(channel, path)
 		return true
@@ -170,7 +175,7 @@ func processFile(channel chan *Operation, options *Options, license string, ioHa
 
 	go func() {
 		content := string(data)
-		action := File(path, content, license, options, ioHandler)
+		action := File(path, content, license, options, h)
 		channel <- &Operation{
 			Action: action,
 			Path:   path,
