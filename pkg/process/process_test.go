@@ -54,7 +54,7 @@ type fileHandlerStub struct {
 	errorWalkingPath bool
 }
 
-func (s *fileHandlerStub) WriteFile(name string, content string) error {
+func (s *fileHandlerStub) WriteFile(name string, content []byte) error {
 	args := s.Called(name, content)
 	return args.Error(0)
 }
@@ -99,14 +99,14 @@ func TestFile_AddLicense(t *testing.T) {
 
 	// Return LicenseAdded if the file does not contain a license and options.Add is true
 	options.Add = true
-	handler.On("WriteFile", fileName, testFileWithTargetLicense).Return(nil).Once()
+	handler.On("WriteFile", fileName, []byte(testFileWithTargetLicense)).Return(nil).Once()
 	op = File(fileName, testFileWithoutLicense, testTargetLicenseHeader, options, handler)
 	assert.True(t, op == LicenseAdded)
 	handler.AssertExpectations(t)
 
 	// Return OperationError if there was an error saving the file
 	options.Add = true
-	handler.On("WriteFile", fileName, testFileWithTargetLicense).Return(errors.New("error")).Once()
+	handler.On("WriteFile", fileName, []byte(testFileWithTargetLicense)).Return(errors.New("error")).Once()
 	op = File(fileName, testFileWithoutLicense, testTargetLicenseHeader, options, handler)
 	assert.True(t, op == OperationError)
 	handler.AssertExpectations(t)
@@ -124,14 +124,14 @@ func TestFile_ReplaceLicense(t *testing.T) {
 
 	// Return LicenseReplaced if the file does not contain a license and options.Replace is true
 	options.Replace = true
-	handler.On("WriteFile", fileName, testFileWithTargetLicense).Return(nil).Once()
+	handler.On("WriteFile", fileName, []byte(testFileWithTargetLicense)).Return(nil).Once()
 	op = File(fileName, testFileWithDifferentLicense, testTargetLicenseHeader, options, handler)
 	assert.True(t, op == LicenseReplaced)
 	handler.AssertExpectations(t)
 
 	// Return OperationError if there was an error saving the file
 	options.Replace = true
-	handler.On("WriteFile", fileName, testFileWithTargetLicense).Return(errors.New("error")).Once()
+	handler.On("WriteFile", fileName, []byte(testFileWithTargetLicense)).Return(errors.New("error")).Once()
 	op = File(fileName, testFileWithDifferentLicense, testTargetLicenseHeader, options, handler)
 	assert.True(t, op == OperationError)
 	handler.AssertExpectations(t)

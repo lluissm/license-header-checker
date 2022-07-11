@@ -79,7 +79,7 @@ type fileHandler interface {
 	// WriteFile writes data to a file named by filename. If the file does not exist,
 	// WriteFile creates it with permissions perm (before umask); otherwise WriteFile
 	// truncates it before writing, without changing permissions.
-	WriteFile(name string, content string) error
+	WriteFile(name string, content []byte) error
 }
 
 // File processes one file
@@ -92,7 +92,7 @@ func File(path string, content string, license string, options *Options, h fileH
 	if containsLicenseHeader(content) {
 		if options.Replace {
 			newContent := replaceHeader(content, license)
-			if err := h.WriteFile(path, newContent); err != nil {
+			if err := h.WriteFile(path, []byte(newContent)); err != nil {
 				return OperationError
 			}
 			return LicenseReplaced
@@ -102,7 +102,7 @@ func File(path string, content string, license string, options *Options, h fileH
 
 	if options.Add {
 		newContent := insertHeader(content, license)
-		if err := h.WriteFile(path, newContent); err != nil {
+		if err := h.WriteFile(path, []byte(newContent)); err != nil {
 			return OperationError
 		}
 		return LicenseAdded

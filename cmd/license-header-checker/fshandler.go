@@ -40,6 +40,6 @@ func (f *fsHandler) WalkDir(path string, fn fs.WalkDirFunc) error {
 	return filepath.WalkDir(path, fn)
 }
 
-func (f *fsHandler) WriteFile(name string, content string) error {
-	return os.WriteFile(name, []byte(content), 0)
+func (f *fsHandler) WriteFile(name string, content []byte) error {
+	return os.WriteFile(name, content, 0)
 }
