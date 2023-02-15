@@ -8,14 +8,16 @@ Multiplatform command line tool that **checks** whether the **license headers** 
 
 - It can **insert the license** to a file in case it does not exist (optional).
 - It can **replace the license** of a file in case it is different than the target (optional).
-- **Only selected file extensions** will be **processed**.
+- **Only the selected file extensions** will be **processed**.
 - Specific **folders, files and paths can be ignored**.
 
 _DISCLAIMER_
 
-The tool expects the software license to be in a **block comment at the beginning of the file** following the format `/* */`.
+The tool looks for the keywords `license` or `copyright` inside the **first block comment of the file** to determine whether the file contains a valid license.
 
-Thus, while it does support the source files of languages like _Go, Rust, JavaScript, TypeScript, C, C++, Java, Swift, Kotlin and C#_, it does not support the file extensions that do not use this style.
+The block comment should be following the format `/* */`. Thus, while it does support the source files of languages like _Go, Rust, JavaScript, TypeScript, C, C++, Java, Swift, Kotlin and C#_, it does not support the file extensions that do not use this comment style.
+
+Go build tags (or anything that is not a block comment that could be before the license) are respected when **replacing** the license.
 
 ## Command Usage
 
