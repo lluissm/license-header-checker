@@ -38,7 +38,7 @@ test-e2e: build
 
 # Install locally
 install:
-	@echo ">> Installing ${CMD} ${VERSION} in ${GOPATH}/bin"
+	@echo ">> Installing ${CMD} ${VERSION}"
 	go install ${LD_FLAGS} ${BUILD_PATH}
 
 # Install necessary tools:
@@ -47,23 +47,23 @@ install:
 # goreleaser: to automate release
 install-tools:
 	mkdir -p ${TOOLS}
-	GOPATH=${TOOLS} go install github.com/caarlos0/svu@latest
-	GOPATH=${TOOLS} go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest
-	GOPATH=${TOOLS} go install github.com/goreleaser/goreleaser@latest
+	GOBIN=${TOOLS} go install github.com/caarlos0/svu@latest
+	GOBIN=${TOOLS} go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest
+	GOBIN=${TOOLS} go install github.com/goreleaser/goreleaser@latest
 
 # Execute golangci-lint
 lint:
-	${TOOLS}/bin/golangci-lint run
+	${TOOLS}/golangci-lint run
 
 # Generate the binaries for all the build targets
 # --rm-dist: Remove the dist folder before building
 # --snapshot: Generate an unversioned snapshot build, skipping all validations
 build-all: install-tools
-	${TOOLS}/bin/goreleaser release --snapshot --rm-dist
+	${TOOLS}/goreleaser release --snapshot --rm-dist
 
 # Generate tag and push to origin
 define release
-RELEASE=$(shell ${TOOLS}/bin/svu $1); \
+RELEASE=$(shell ${TOOLS}/svu $1); \
 git tag $$RELEASE; \
 git push origin $$RELEASE
 endef
