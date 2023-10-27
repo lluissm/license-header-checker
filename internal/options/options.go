@@ -44,12 +44,12 @@ func Parse(osArgs []string) (*Options, error) {
 
 	flagSet := flag.NewFlagSet("lhc", flag.ExitOnError)
 	flagSet.Usage = func() {
-		fmt.Fprintf(flag.CommandLine.Output(), "\033[1;4mSYNOPSIS\033[0m\n\n")
-		fmt.Fprintf(flag.CommandLine.Output(), "license-header-checker [-a] [-r] [-v] [-i path1,...] license-header-path src-path extensions...\n\n")
-		fmt.Fprintf(flag.CommandLine.Output(), "\033[1;4mOPTIONS\033[0m\n\n")
+		_, _ = fmt.Fprintf(flag.CommandLine.Output(), "\033[1;4mSYNOPSIS\033[0m\n\n")
+		_, _ = fmt.Fprintf(flag.CommandLine.Output(), "license-header-checker [-a] [-r] [-v] [-i path1,...] license-header-path src-path extensions...\n\n")
+		_, _ = fmt.Fprintf(flag.CommandLine.Output(), "\033[1;4mOPTIONS\033[0m\n\n")
 		flagSet.PrintDefaults()
-		fmt.Fprintf(flag.CommandLine.Output(), "\n\033[1;4mEXAMPLE\033[0m\n\n")
-		fmt.Fprintf(flag.CommandLine.Output(), "license-header-checker -a -r -v -i folder,ignore/path license-header-path project-src-path extension1 extension2\n\n")
+		_, _ = fmt.Fprintf(flag.CommandLine.Output(), "\n\033[1;4mEXAMPLE\033[0m\n\n")
+		_, _ = fmt.Fprintf(flag.CommandLine.Output(), "license-header-checker -a -r -v -i folder,ignore/path license-header-path project-src-path extension1 extension2\n\n")
 	}
 
 	addFlag := flagSet.Bool("a", false, "Add the target license in case the file does not have any.")
@@ -73,18 +73,18 @@ func Parse(osArgs []string) (*Options, error) {
 	}
 
 	if len(args) < 3 {
-		return nil, errors.New("Missing arguments, please see documentation")
+		return nil, errors.New("missing arguments, please see documentation")
 	}
 
 	licensePath := args[0]
 	path := args[1]
 
-	extensions := []string{}
+	var extensions []string
 	for _, e := range args[2:] {
 		extensions = append(extensions, "."+e)
 	}
 
-	ignorePaths := []string{}
+	var ignorePaths []string
 	for _, p := range strings.Split(*ignorePathsFlag, ",") {
 		if len(p) > 0 {
 			ignorePaths = append(ignorePaths, p)

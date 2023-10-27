@@ -51,7 +51,7 @@ func printStats(options *options.Options, stats *process.Stats) {
 	printWarnings(stats)
 }
 
-// printFileOperations prints the the files processed by operation type
+// printFileOperations prints the files processed by operation type
 func printFileOperations(stats *process.Stats) {
 	fmt.Printf("files:\n")
 	printFiles(stats.Files[process.LicenseOk], "license_ok", okRender)
