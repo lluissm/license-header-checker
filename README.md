@@ -7,7 +7,7 @@
 Multiplatform command line tool that **checks** whether the **license headers** are included in the **source files** of a project.
 
 - It can **insert the license** to a file in case it does not exist (optional).
-- It can **replace the license** of a file in case it is different than the target (optional).
+- It can **replace the license** of a file in case it is different from the target (optional).
 - **Only the selected file extensions** will be **processed**.
 - Specific **folders, files and paths can be ignored**.
 
@@ -67,7 +67,7 @@ jobs:
 
 ### Install script
 
-On Linux, MacOS or a terminal like Git Bash in Windows, the install script can be used for convenience.
+On Linux, macOS or a terminal like Git Bash in Windows, the installation script can be used for convenience.
 
 To install the latest version:
 

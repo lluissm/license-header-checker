@@ -32,24 +32,24 @@ import (
 	"github.com/lluissm/license-header-checker/pkg/process"
 )
 
-var version string = "development"
+var version = "development"
 
 func main() {
 
-	options, err := options.Parse(os.Args)
+	opts, err := options.Parse(os.Args)
 	if err != nil {
 		log.Fatalf("could not parse the cli args: %s", err.Error())
 	}
 
-	if options.ShowVersion {
+	if opts.ShowVersion {
 		fmt.Printf("version: %s\n", version)
 		os.Exit(0)
 	}
 
-	stats, err := process.Files(options.Process, new(fsHandler))
+	stats, err := process.Files(opts.Process, new(fsHandler))
 	if err != nil {
 		log.Fatalf("could not process the files: %s", err.Error())
 	}
 
-	printStats(options, stats)
+	printStats(opts, stats)
 }

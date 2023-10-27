@@ -25,6 +25,7 @@ package main
 
 import (
 	"fmt"
+	"sort"
 
 	"github.com/gookit/color"
 	"github.com/lluissm/license-header-checker/internal/options"
@@ -51,7 +52,7 @@ func printStats(options *options.Options, stats *process.Stats) {
 	printWarnings(stats)
 }
 
-// printFileOperations prints the the files processed by operation type
+// printFileOperations prints the files processed by operation type
 func printFileOperations(stats *process.Stats) {
 	fmt.Printf("files:\n")
 	printFiles(stats.Files[process.LicenseOk], "license_ok", okRender)
@@ -128,6 +129,9 @@ func printFiles(files []string, operationName string, render func(a ...interface
 		return
 	}
 	fmt.Printf("  %s:\n", operationName)
+	sort.Slice(files, func(i, j int) bool {
+		return files[i] < files[j]
+	})
 	for _, file := range files {
 		fmt.Printf("    - %s\n", render(fmt.Sprintf("%v", file)))
 	}

@@ -143,7 +143,7 @@ func Files(options *Options, h fileHandler) (*Stats, error) {
 
 // processFile returns true if a file has been processed and false if processing has been skipped.
 //
-// Pocessing will be skipped if the path is a directory, it is part of the paths to ignore or the
+// Processing will be skipped if the path is a directory, it is part of the paths to ignore or the
 // file extension does not match any of the extensions in options.Extensions
 //
 // The processing of the file is done on a goroutine, hence the channel to write the result of the
