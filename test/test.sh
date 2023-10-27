@@ -99,9 +99,7 @@ run_test "$flags" "$test_case" "$expected_output"
 flags='-a -r -v -i src/other'
 test_case='Testing with -a and -r and -i and -v flags...'
 expected_output="\
-files: license_ok: - sample-project/src/file-with-license.js license_replaced: - sample-project/test/file-with-old-license.go - sample-project/src/file-with-old-license.cpp license_added: - sample-project/src/file-without-license.java \
-options: project_path: sample-project ignore_paths: - src/other extensions: - .java - .js - .cpp - .go flags: - add - replace - verbose license_header: %ssample-project/licenses/current-license.txt \
-totals: license_ok: 1 files license_replaced: 2 files license_added: 1 files elapsed_time: 0ms"
+files: license_ok: - sample-project/src/file-with-license.js license_replaced: - sample-project/src/file-with-old-license.cpp - sample-project/test/file-with-old-license.go license_added: - sample-project/src/file-without-license.java options: project_path: sample-project ignore_paths: - src/other extensions: - .java - .js - .cpp - .go flags: - add - replace - verbose license_header: %ssample-project/licenses/current-license.txt totals: license_ok: 1 files license_replaced: 2 files license_added: 1 files elapsed_time: 0ms"
 run_test "$flags" "$test_case" "$expected_output"
 
 delete_sample_project
