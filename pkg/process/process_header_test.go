@@ -24,6 +24,7 @@ SOFTWARE.
 package process
 
 import (
+	"regexp"
 	"strings"
 	"testing"
 
@@ -57,6 +58,19 @@ func TestExtractHeader(t *testing.T) {
 	input = "/* copyright */\nlorem ipsum dolor sit amet"
 	output = extractHeader(DefaultRegex, input)
 	assert.True(t, output == expected)
+
+	// Check non-default headers
+	expected = strings.TrimSpace(testPythonTargetLicense)
+	pyRegex := regexp.MustCompile(`\"""(.|[\r\n])*\"""`)
+
+	output = extractHeader(pyRegex, testFileWithPythonTargetLicense)
+	assert.True(t, output == expected)
+
+	output = extractHeader(pyRegex, testFileWithDifferentPythonTargetLicense)
+	assert.True(t, output != expected)
+
+	output = extractHeader(pyRegex, testFileWithoutPythonTargetLicense)
+	assert.True(t, output != expected)
 }
 
 func TestInsertHeader(t *testing.T) {
