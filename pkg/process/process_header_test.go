@@ -31,26 +31,26 @@ import (
 )
 
 func TestContainsLicenseHeader(t *testing.T) {
-	assert.True(t, containsLicenseHeader(testFileWithTargetLicense))
-	assert.True(t, containsLicenseHeader(testFileWithDifferentLicense))
-	assert.False(t, containsLicenseHeader(testFileWithoutLicense))
+	assert.True(t, containsLicenseHeader(DefaultRegex, testFileWithTargetLicense))
+	assert.True(t, containsLicenseHeader(DefaultRegex, testFileWithDifferentLicense))
+	assert.False(t, containsLicenseHeader(DefaultRegex, testFileWithoutLicense))
 }
 
 func TestExtractHeader(t *testing.T) {
 	expected := strings.TrimSpace(testTargetLicenseHeader)
 
 	input := testFileWithTargetLicense
-	output := extractHeader(input)
+	output := extractHeader(DefaultRegex, input)
 	assert.True(t, output == expected)
 
 	// Check that build tags are not included in the extracted header
 	input = testFileWithBuildTagsAndTargetLicense
-	output = extractHeader(input)
+	output = extractHeader(DefaultRegex, input)
 	assert.True(t, output == expected)
 
 	expected = "/* copyright */"
 	input = "/* copyright */\nlorem ipsum dolor sit amet"
-	output = extractHeader(input)
+	output = extractHeader(DefaultRegex, input)
 	assert.True(t, output == expected)
 }
 
@@ -67,12 +67,12 @@ func TestReplaceHeader(t *testing.T) {
 
 	expected := testFileWithTargetLicense
 	input := testFileWithDifferentLicense
-	output := replaceHeader(input, header)
+	output := replaceHeader(DefaultRegex, input, header)
 	assert.True(t, output == expected)
 
 	// Check that build tags are not removed after replacing license
 	expected = testFileWithBuildTagsAndTargetLicense
 	input = testFileWithBuildTagsAndDifferentLicense
-	output = replaceHeader(input, header)
+	output = replaceHeader(DefaultRegex, input, header)
 	assert.True(t, output == expected)
 }
