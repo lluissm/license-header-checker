@@ -56,7 +56,7 @@ func Parse(osArgs []string) (*Options, error) {
 	replaceFlag := flagSet.Bool("r", false, "Replace the existing license by the target one in case they are different.")
 	ignorePathsFlag := flagSet.String("i", "", "A comma separated list of the folders, files and/or paths that should be ignored. Does not support wildcards.")
 	verboseFlag := flagSet.Bool("v", false, "Be verbose during execution printing options, files being processed, execution time, ...")
-	headerRegexFlag := flagSet.String("e", "", "A regular expression to match a header comment.")
+	headerRegexFlag := flagSet.String("e", "", "Custom regular expression to support other comment types. If not supplied, the default one will be used (for /* ... */ style comments)")
 	showVersionFlag := flagSet.Bool("version", false, "Display version number")
 
 	if err := flagSet.Parse(osArgs[1:]); err != nil {
