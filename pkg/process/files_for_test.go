@@ -42,3 +42,6 @@ var testFileWithBuildTagsAndTargetLicense string
 
 //go:embed testdata/go_with_different_header_and_build_tag.go
 var testFileWithBuildTagsAndDifferentLicense string
+
+//go:embed testdata/go_with_target_header_and_extra_comment.go
+var testFileWithTargetLicenseAndExtraComments string

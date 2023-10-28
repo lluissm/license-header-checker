@@ -48,6 +48,11 @@ func TestExtractHeader(t *testing.T) {
 	output = extractHeader(DefaultRegex, input)
 	assert.True(t, output == expected)
 
+	// Check that only the header gets extracted
+	input = testFileWithTargetLicenseAndExtraComments
+	output = extractHeader(DefaultRegex, input)
+	assert.True(t, output == expected)
+
 	expected = "/* copyright */"
 	input = "/* copyright */\nlorem ipsum dolor sit amet"
 	output = extractHeader(DefaultRegex, input)

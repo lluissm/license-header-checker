@@ -1,3 +1,6 @@
+//go:build tools
+// +build tools
+
 /*
  * This file is part of the XXX distribution (https://github.com/xxxx or http://xxx.github.io).
  * Copyright (c) 2020 The Author.
@@ -15,18 +18,13 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-const http = require("http");
+package tools
 
-const hostname = "127.0.0.1";
-const port = 3000;
+/* This is just an extra comment that should not be parsed as the license */
 
-/* A random comment */
-const server = http.createServer((req, res) => {
-	res.statusCode = 200;
-	res.setHeader("Content-Type", "text/plain");
-	res.end("Hello World");
-});
-
-server.listen(port, hostname, () => {
-	console.log(`Server running at http://${hostname}:${port}/`);
-});
+/*
+ * This is just another extra comment that should not be parsed as the license
+ */
+import (
+	_ "golang.org/x/tools/cmd/stringer"
+)
