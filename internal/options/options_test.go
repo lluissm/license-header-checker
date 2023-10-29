@@ -24,6 +24,7 @@ SOFTWARE.
 package options
 
 import (
+	"regexp"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -122,4 +123,12 @@ func TestIgnorePaths(t *testing.T) {
 	args = []string{"license-header-checker", "license-path", "source-path", "js"}
 	options, _ = Parse(args)
 	assert.True(t, len(options.Process.IgnorePaths) == 0)
+}
+
+func TestHeaderRegex(t *testing.T) {
+	headerRegexStr := "\"\"\"(.|[\\r\\n])*\"\"\""
+	headerRegex := regexp.MustCompile(headerRegexStr)
+	args := []string{"license-header-checker", "-e", headerRegexStr, "license-path", "source-path", "js", "ts"}
+	options, _ := Parse(args)
+	assert.Equal(t, headerRegex, options.Process.HeaderRegex)
 }

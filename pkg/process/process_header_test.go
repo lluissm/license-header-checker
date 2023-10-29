@@ -61,7 +61,7 @@ func TestExtractHeader(t *testing.T) {
 
 	// Check non-default headers
 	expected = strings.TrimSpace(testPythonTargetLicense)
-	pyRegex := regexp.MustCompile(`\"""(.|[\r\n])*\"""`)
+	pyRegex := regexp.MustCompile(`"""(.|[\r\n])*"""`)
 
 	output = extractHeader(pyRegex, testFileWithPythonTargetLicense)
 	assert.True(t, output == expected)
