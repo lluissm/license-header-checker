@@ -24,33 +24,23 @@ SOFTWARE.
 package process
 
 import (
+	"regexp"
 	"strings"
 )
 
+var DefaultRegex *regexp.Regexp = regexp.MustCompile(`/\*([^*]|[\r\n]|(\*+([^*/]|[\r\n])))*\*+/`)
+
 // containsLicenseHeader returns true if the content contains the words license or copyright in a header comment
-func containsLicenseHeader(content string) bool {
-	header := strings.ToLower(extractHeader(content))
+func containsLicenseHeader(re *regexp.Regexp, content string) bool {
+	header := strings.ToLower(extractHeader(re, content))
 	containsCopyright := strings.Contains(header, "copyright")
 	containsLicense := strings.Contains(header, "license")
 	return containsCopyright || containsLicense
 }
 
 // extractHeader returns the first block comment of the content (if any). Empty string otherwise.
-func extractHeader(content string) (header string) {
-	found := false
-	for _, line := range strings.Split(content, "\n") {
-		if strings.Contains(line, "*/") {
-			header += line
-			return
-		}
-		if strings.Contains(line, "/*") {
-			found = true
-		}
-		if found {
-			header += line + "\n"
-		}
-	}
-	return ""
+func extractHeader(re *regexp.Regexp, content string) string {
+	return re.FindString(content)
 }
 
 // insertHeader inserts the provided header at the beginning of the content separated by one empty line
@@ -59,8 +49,8 @@ func insertHeader(content, header string) string {
 }
 
 // replaceHeader removes the current header and inserts the provided one
-func replaceHeader(content, header string) (res string) {
-	oldHeader := extractHeader(content)
+func replaceHeader(re *regexp.Regexp, content, header string) (res string) {
+	oldHeader := extractHeader(re, content)
 	res = strings.ReplaceAll(content, strings.TrimSpace(oldHeader), strings.TrimSpace(header))
 	return res
 }

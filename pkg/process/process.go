@@ -25,6 +25,7 @@ package process
 
 import (
 	"io/fs"
+	"regexp"
 	"strings"
 	"time"
 )
@@ -47,6 +48,7 @@ type (
 		LicensePath string
 		Extensions  []string
 		IgnorePaths []string
+		HeaderRegex *regexp.Regexp
 	}
 )
 
@@ -89,9 +91,9 @@ func File(path string, content string, license string, options *Options, h fileH
 		return LicenseOk
 	}
 
-	if containsLicenseHeader(content) {
+	if containsLicenseHeader(options.HeaderRegex, content) {
 		if options.Replace {
-			newContent := replaceHeader(content, license)
+			newContent := replaceHeader(options.HeaderRegex, content, license)
 			if err := h.WriteFile(path, []byte(newContent)); err != nil {
 				return OperationError
 			}

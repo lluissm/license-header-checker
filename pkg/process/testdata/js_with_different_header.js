@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (c) 2020 The Author
+ * Copyright (c) XXXX The Author
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -27,6 +27,7 @@ const http = require("http");
 const hostname = "127.0.0.1";
 const port = 3000;
 
+/* A random comment */
 const server = http.createServer((req, res) => {
 	res.statusCode = 200;
 	res.setHeader("Content-Type", "text/plain");

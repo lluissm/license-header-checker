@@ -90,7 +90,9 @@ func TestFile_LicenseOk(t *testing.T) {
 func TestFile_AddLicense(t *testing.T) {
 	fileName := "main.go"
 	handler := new(fileHandlerStub)
-	options := &Options{}
+	options := &Options{
+		HeaderRegex: DefaultRegex,
+	}
 
 	// Return SkippedAdd if the file does not contain a license BUT options.Add is false
 	options.Add = false
@@ -115,7 +117,9 @@ func TestFile_AddLicense(t *testing.T) {
 func TestFile_ReplaceLicense(t *testing.T) {
 	fileName := "main.cpp"
 	handler := new(fileHandlerStub)
-	options := &Options{}
+	options := &Options{
+		HeaderRegex: DefaultRegex,
+	}
 
 	// Return SkippedReplace if the file does not contain a license BUT options.Replace is false
 	options.Replace = false
@@ -145,6 +149,7 @@ func TestFiles_Success(t *testing.T) {
 		LicensePath: "license.txt",
 		Extensions:  []string{".cpp"},
 		IgnorePaths: []string{"ignore"},
+		HeaderRegex: DefaultRegex,
 	}
 
 	// Prepare mock ioHandler to walk through all the files

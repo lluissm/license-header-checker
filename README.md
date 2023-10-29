@@ -15,7 +15,7 @@ _DISCLAIMER_
 
 The tool looks for the keywords `license` or `copyright` inside the **first block comment of the file** to determine whether the file contains a valid license.
 
-The block comment should be following the format `/* */`. Thus, while it does support the source files of languages like _Go, Rust, JavaScript, TypeScript, C, C++, Java, Swift, Kotlin and C#_, it does not support the file extensions that do not use this comment style.
+By default, it is configured for the `/* ... */` format but a custom regular expression can be provided for other types using the `-e` option.
 
 Go build tags (or anything that is not a block comment that could be before the license) are respected when **replacing** the license.
 
@@ -35,6 +35,7 @@ license-header-checker [-a] [-r] [-v] [-i path1,...] license-header-path src-pat
   -v        Be verbose during execution.
   -i        A comma separated list of the folders, files and/or paths that should be ignored.
             It does not support wildcards.
+  -e        Custom regular expression to support other comment types. If not supplied, the default one will be used (for /* ... */ style comments)
   -version  Display version number.
 ```
 
@@ -84,11 +85,3 @@ curl -s https://raw.githubusercontent.com/lluissm/license-header-checker/master/
 ### Binary packages
 
 The binary packages for Linux, Windows and macOS are uploaded for each release and can be downloaded from the [releases](https://github.com/lluissm/license-header-checker/releases) page.
-
-### Building from source
-
-Provided you have Go and make installed, just type:
-
-```bash
-make install
-```

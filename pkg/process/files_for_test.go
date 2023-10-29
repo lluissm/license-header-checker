@@ -42,3 +42,18 @@ var testFileWithBuildTagsAndTargetLicense string
 
 //go:embed testdata/go_with_different_header_and_build_tag.go
 var testFileWithBuildTagsAndDifferentLicense string
+
+//go:embed testdata/go_with_target_header_and_extra_comment.go
+var testFileWithTargetLicenseAndExtraComments string
+
+//go:embed testdata/py_target_license_header.txt
+var testPythonTargetLicense string
+
+//go:embed testdata/py_with_different_license.py
+var testFileWithDifferentPythonTargetLicense string
+
+//go:embed testdata/py_with_license.py
+var testFileWithPythonTargetLicense string
+
+//go:embed testdata/py_without_license.py
+var testFileWithoutPythonTargetLicense string
